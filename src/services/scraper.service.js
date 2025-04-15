@@ -122,7 +122,6 @@ class ScraperService {
         }
     }
 
-    // Similar implementation for WATA scraper...
 }
 
 // Singleton instance
