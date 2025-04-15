@@ -1,21 +1,47 @@
 {
-  "name": "example",
+  "name": "game-cert-lookup",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Video game certification lookup API for CGC and WATA grading services",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "lint": "eslint .",
+    "test": "jest"
   },
-  "keywords": [],
+  "keywords": [
+    "cgc",
+    "wata",
+    "video games",
+    "grading",
+    "certification"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "axios": "^1.8.4",
-    "cheerio": "^1.0.0",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "compression": "^1.7.4",
+    "config": "^3.3.9",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "nodemon": "^3.1.9",
-    "puppeteer": "^24.6.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "http-status-codes": "^2.3.0",
+    "joi": "^17.11.0",
+    "morgan": "^1.10.0",
+    "puppeteer": "^21.5.2",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }

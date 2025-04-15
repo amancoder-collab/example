@@ -1,46 +1,77 @@
-# Video Game Grading Certification Lookup API
+# Video Game Certification Lookup API
 
-This API provides a unified endpoint to look up video game certification information across multiple grading services including CGC and WATA.
+A robust Node.js API for looking up video game certification information from multiple grading services including CGC and WATA.
 
 ## Features
 
 - Single endpoint to check multiple grading services simultaneously
 - Supports CGC and WATA certification lookups
 - Retrieves population reports when available
+- Comprehensive error handling
+- Rate limiting and security features
+- Logging system
+- Input validation
 - Cross-platform compatibility
-- Concurrent processing for faster results
+
+## Prerequisites
+
+- Node.js >= 16.0.0
+- npm >= 8.0.0
 
 ## Installation
 
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd game-cert-lookup
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-## Environment Variables
-
-Create a `.env` file in the root directory with:
-
-```
+3. Create a `.env` file in the root directory:
+```env
+NODE_ENV=development
 PORT=3000
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+PUPPETEER_HEADLESS=false
+CGC_TIMEOUT=10000
+WATA_TIMEOUT=10000
+LOG_LEVEL=info
 ```
 
 ## Usage
 
-Start the server:
+### Development
 
 ```bash
-node src/server.js
+npm run dev
 ```
 
-### API Endpoint
+### Production
 
-Universal Certification Lookup:
+```bash
+npm start
+```
+
+## API Endpoints
+
+### Lookup Certification
+
 ```
 GET /api/lookup/:certNumber
 ```
 
-### Response Format
+#### Parameters
 
+- `certNumber` (required): The certification number to look up (7-10 digits)
+
+#### Response Format
+
+Success Response:
 ```json
 {
     "success": true,
@@ -66,56 +97,106 @@ GET /api/lookup/:certNumber
                     }
                 }
             }
-        },
-        {
-            "success": true,
-            "source": "WATA",
-            "certNumber": "12345678",
-            "data": {
-                "title": "Game Title",
-                "grade": "9.8 A++",
-                "platform": "Nintendo NES",
-                "certificationDate": "2023-01-01",
-                "populationReport": {
-                    "available": false,
-                    "data": null
-                }
-            }
         }
     ]
 }
 ```
 
-### Error Response Format
-
-When no results are found:
+Error Response:
 ```json
 {
-    "success": false,
-    "message": "Certificate not found in any supported grading service",
-    "certNumber": "12345678"
+    "status": "error",
+    "message": "Error message"
 }
 ```
 
-When an error occurs:
-```json
-{
-    "success": false,
-    "error": "Error message",
-    "certNumber": "12345678"
-}
-```
+## Security Features
+
+- Helmet.js for security headers
+- Rate limiting
+- CORS protection
+- Request size limiting
+- Input validation
+- Error sanitization in production
 
 ## Error Handling
 
-The API returns appropriate HTTP status codes:
-- 200: Successful request with results
-- 404: Certificate not found in any service
-- 500: Server error (with error message)
+The API implements a comprehensive error handling system:
+- Operational errors (4xx)
+- Programming errors (5xx)
+- Unhandled rejections
+- Uncaught exceptions
 
-## Notes
+## Logging
 
-- The API uses web scraping to gather information, so it depends on the structure of the grading services' websites
-- Population reports may not be available for all certifications
-- Rate limiting may be implemented by the grading services' websites
-- The API checks all services concurrently for faster results 
+- Winston logger implementation
+- Separate error and combined logs
+- Console logging in development
+- Structured JSON logging in production
+
+## Development
+
+### Scripts
+
+- `npm start` - Start the server
+- `npm run dev` - Start the server with nodemon
+- `npm run lint` - Run ESLint
+- `npm test` - Run tests
+
+### Project Structure
+
+```
+src/
+├── config/         # Configuration files
+├── controllers/    # Route controllers
+├── middlewares/    # Custom middleware
+├── models/         # Data models
+├── routes/         # Route definitions
+├── services/       # Business logic
+├── utils/          # Utility functions
+└── scrapers/       # Web scraping modules
+```
+
+## Best Practices Implemented
+
+1. **Security**
+   - Rate limiting
+   - Security headers
+   - Input validation
+   - CORS protection
+
+2. **Error Handling**
+   - Global error handling
+   - Custom error classes
+   - Operational vs Programming errors
+   - Graceful shutdown
+
+3. **Performance**
+   - Response compression
+   - Concurrent scraping
+   - Browser instance management
+   - Request timeout handling
+
+4. **Code Quality**
+   - ESLint configuration
+   - Proper project structure
+   - Dependency management
+   - Type checking
+
+5. **Monitoring**
+   - Winston logging
+   - Morgan request logging
+   - Error tracking
+   - Performance monitoring
+
+## License
+
+ISC
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request 
