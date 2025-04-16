@@ -1,5 +1,5 @@
 import config from '@/config';
-import { BaseService } from '@/utils/base.service';
+import { BaseService } from '@/shared/utils/base.service';
 import { Request, Response, NextFunction } from 'express';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import helmet from 'helmet';

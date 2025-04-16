@@ -2,10 +2,10 @@
 	"name": "game-cert-lookup",
 	"version": "1.0.0",
 	"description": "Video game certification lookup API for CGC and WATA grading services",
-	"main": "dist/server.js",
+	"main": "dist/index.js",
 	"scripts": {
-		"start": "node dist/server.js",
-		"dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+		"start": "node dist/index.js",
+		"dev": "ts-node-dev --respawn --transpile-only src/index.ts",
 		"build": "tsc",
 		"lint": "eslint . --ext .ts",
 		"test": "jest",

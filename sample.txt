@@ -1,3 +1,6 @@
+create a resposne handler or middleware like nestjs
+create a exception middleware similar like nestjs
+
 install and configure bullmq
 setup postgres
 setup redis

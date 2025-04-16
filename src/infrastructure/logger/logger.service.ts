@@ -1,6 +1,6 @@
 import winston, { Logger } from 'winston';
 import config from '@/config';
-import { BaseService } from '@/utils/base.service';
+import { BaseService } from '@/shared/utils/base.service';
 
 interface LogMeta {
     [key: string]: unknown;
