@@ -1,12 +1,44 @@
-const puppeteer = require('puppeteer');
-const { StatusCodes } = require('http-status-codes');
-const config = require('../../../shared/config');
-const logger = require('../../../infrastructure/logger/logger.service');
-const { AppError } = require('../../../shared/middleware/error.middleware');
-const processHandler = require('../../../infrastructure/server/process-handler');
-const BaseService = require('../../../shared/utils/base.service');
+import puppeteer, { Browser, Page } from 'puppeteer';
+import { StatusCodes } from 'http-status-codes';
+import config from '../../../shared/config';
+import logger from '../../../infrastructure/logger/logger.service';
+import { AppError } from '../../../shared/middleware/error.middleware';
+import processHandler from '../../../infrastructure/server/process-handler';
+import { BaseService } from '../../../shared/utils/base.service';
+
+interface PopulationReport {
+    available: boolean;
+    data: {
+        totalGraded: string | null;
+        higherGrades: string | null;
+        sameGrade: string | null;
+        lowerGrades: string | null;
+    } | null;
+}
+
+interface GameInfo {
+    title: string | null;
+    grade: string | null;
+    platform: string | null;
+    certificationDate: string | null;
+    populationReport: PopulationReport;
+}
+
+interface CertificationResult {
+    success: boolean;
+    source: 'CGC' | 'WATA';
+    certNumber: string;
+    data: GameInfo;
+}
+
+interface CertificationLookupResult {
+    certNumber: string;
+    results: CertificationResult[];
+}
 
 class CertificationService extends BaseService {
+    private browsers: Map<string, Browser>;
+
     constructor() {
         super();
         if (this.browsers) return this;
@@ -19,7 +51,7 @@ class CertificationService extends BaseService {
         });
     }
 
-    async initBrowser(service) {
+    private async initBrowser(service: string): Promise<Browser> {
         try {
             const browser = await puppeteer.launch(config.puppeteer);
             this.browsers.set(service, browser);
@@ -33,14 +65,14 @@ class CertificationService extends BaseService {
         }
     }
 
-    async getBrowser(service) {
+    private async getBrowser(service: string): Promise<Browser> {
         if (!this.browsers.has(service)) {
             await this.initBrowser(service);
         }
-        return this.browsers.get(service);
+        return this.browsers.get(service)!;
     }
 
-    async closeBrowsers() {
+    private async closeBrowsers(): Promise<void> {
         for (const [service, browser] of this.browsers.entries()) {
             try {
                 await browser.close();
@@ -51,7 +83,7 @@ class CertificationService extends BaseService {
         }
     }
 
-    async lookupCertification(certNumber) {
+    public async lookup(certNumber: string): Promise<CertificationLookupResult> {
         logger.info(`Looking up certification: ${certNumber}`);
 
         const [cgcResult, wataResult] = await Promise.allSettled([
@@ -59,7 +91,7 @@ class CertificationService extends BaseService {
             this.wataScraper(certNumber)
         ]);
 
-        const results = {
+        const results: CertificationLookupResult = {
             certNumber,
             results: []
         };
@@ -83,7 +115,7 @@ class CertificationService extends BaseService {
         return results;
     }
 
-    async cgcScraper(certNumber) {
+    private async cgcScraper(certNumber: string): Promise<CertificationResult> {
         const browser = await this.getBrowser('cgc');
         const page = await browser.newPage();
 
@@ -112,11 +144,11 @@ class CertificationService extends BaseService {
             ]);
 
             const gameInfo = await page.evaluate(() => {
-                const result = {
-                    title: document.querySelector('.game-title')?.textContent?.trim(),
-                    grade: document.querySelector('.grade-value')?.textContent?.trim(),
-                    platform: document.querySelector('.platform')?.textContent?.trim(),
-                    certificationDate: document.querySelector('.cert-date')?.textContent?.trim(),
+                const result: GameInfo = {
+                    title: document.querySelector('.game-title')?.textContent?.trim() ?? null,
+                    grade: document.querySelector('.grade-value')?.textContent?.trim() ?? null,
+                    platform: document.querySelector('.platform')?.textContent?.trim() ?? null,
+                    certificationDate: document.querySelector('.cert-date')?.textContent?.trim() ?? null,
                     populationReport: {
                         available: false,
                         data: null
@@ -127,10 +159,10 @@ class CertificationService extends BaseService {
                 if (popReport) {
                     result.populationReport.available = true;
                     result.populationReport.data = {
-                        totalGraded: document.querySelector('.total-graded')?.textContent?.trim(),
-                        higherGrades: document.querySelector('.higher-grades')?.textContent?.trim(),
-                        sameGrade: document.querySelector('.same-grade')?.textContent?.trim(),
-                        lowerGrades: document.querySelector('.lower-grades')?.textContent?.trim()
+                        totalGraded: document.querySelector('.total-graded')?.textContent?.trim() ?? null,
+                        higherGrades: document.querySelector('.higher-grades')?.textContent?.trim() ?? null,
+                        sameGrade: document.querySelector('.same-grade')?.textContent?.trim() ?? null,
+                        lowerGrades: document.querySelector('.lower-grades')?.textContent?.trim() ?? null
                     };
                 }
 
@@ -155,15 +187,15 @@ class CertificationService extends BaseService {
         } catch (error) {
             logger.error(`CGC scraping failed for cert ${certNumber}:`, error);
             throw new AppError(
-                error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
-                error.message || `Failed to retrieve CGC certification: ${certNumber}`
+                error instanceof AppError ? error.statusCode : StatusCodes.INTERNAL_SERVER_ERROR,
+                error instanceof Error ? error.message : `Failed to retrieve CGC certification: ${certNumber}`
             );
         } finally {
             await page.close();
         }
     }
 
-    async wataScraper(certNumber) {
+    private async wataScraper(certNumber: string): Promise<CertificationResult> {
         // Similar implementation for WATA...
         throw new AppError(
             StatusCodes.NOT_IMPLEMENTED,
@@ -172,4 +204,4 @@ class CertificationService extends BaseService {
     }
 }
 
-module.exports = CertificationService.getInstance(); 
+export default CertificationService.getInstance<CertificationService>(); 

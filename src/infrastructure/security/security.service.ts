@@ -1,12 +1,25 @@
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const config = require('../../shared/config');
-const BaseService = require('../../shared/utils/base.service');
+import config from '@/config';
+import { BaseService } from '@/utils/base.service';
+import { Request, Response, NextFunction } from 'express';
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
+import helmet from 'helmet';
+type CorsMiddleware = (req: Request, res: Response, next: NextFunction) => void;
+
+interface SecurityMiddleware {
+    rateLimiter: RateLimitRequestHandler;
+    helmet: ReturnType<typeof helmet>;
+    cors: CorsMiddleware;
+}
 
 class SecurityService extends BaseService {
+    private limiter!: RateLimitRequestHandler;
+    private helmetMiddleware!: ReturnType<typeof helmet>;
+    private corsMiddleware!: CorsMiddleware;
+
     constructor() {
         super();
-        if (this.limiter) return this;
+        const instance = (this.constructor as any).instance;
+        if (instance) return instance;
 
         this.limiter = rateLimit({
             windowMs: config.rateLimitWindowMs,
@@ -19,7 +32,7 @@ class SecurityService extends BaseService {
             legacyHeaders: false
         });
 
-        this.helmet = helmet({
+        this.helmetMiddleware = helmet({
             contentSecurityPolicy: {
                 directives: {
                     defaultSrc: ["'self'"],
@@ -41,7 +54,7 @@ class SecurityService extends BaseService {
             xssFilter: true
         });
 
-        this.cors = (req, res, next) => {
+        this.corsMiddleware = (req: Request, res: Response, next: NextFunction): void => {
             res.header('Access-Control-Allow-Origin', config.corsOrigin || '*');
             res.header('Access-Control-Allow-Methods', 'GET');
             res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -50,13 +63,13 @@ class SecurityService extends BaseService {
         };
     }
 
-    getMiddleware() {
+    public getMiddleware(): SecurityMiddleware {
         return {
             rateLimiter: this.limiter,
-            helmet: this.helmet,
-            cors: this.cors
+            helmet: this.helmetMiddleware,
+            cors: this.corsMiddleware
         };
     }
 }
 
-module.exports = SecurityService.getInstance(); 
+export default SecurityService.getInstance<SecurityService>(); 

@@ -1,21 +1,53 @@
-const puppeteer = require('puppeteer');
-const { StatusCodes } = require('http-status-codes');
-const config = require('../config/config');
-const logger = require('../utils/logger');
-const { AppError } = require('../middlewares/error');
+import puppeteer, { Browser, Page } from 'puppeteer';
+import { StatusCodes } from 'http-status-codes';
+import { AppError } from '@/middleware/error.middleware';
+import config from '@/config';
+import { logger } from '@/infrastructure/logger/logger.service';
+
+interface PopulationReportData {
+    totalGraded: string | null;
+    higherGrades: string | null;
+    sameGrade: string | null;
+    lowerGrades: string | null;
+}
+
+interface PopulationReport {
+    available: boolean;
+    data: PopulationReportData | null;
+}
+
+interface GameInfo {
+    title: string | null;
+    grade: string | null;
+    platform: string | null;
+    certificationDate: string | null;
+    populationReport: PopulationReport;
+}
+
+interface ScrapingResult {
+    success: boolean;
+    source: 'CGC' | 'WATA';
+    certNumber: string;
+    data: GameInfo;
+}
 
 class ScraperService {
+    private browsers: Map<string, Browser>;
+
     constructor() {
         this.browsers = new Map();
     }
 
-    async initBrowser(service) {
+    private async initBrowser(service: string): Promise<Browser> {
         try {
-            const browser = await puppeteer.launch(config.puppeteer);
+            const browser = await puppeteer.launch({
+                ...config.puppeteer,
+                args: [...config.puppeteer.args]
+            });
             this.browsers.set(service, browser);
             return browser;
         } catch (error) {
-            logger.error(`Failed to initialize browser for ${service}:`, error);
+            logger.error(`Failed to initialize browser for ${service}:`, { error });
             throw new AppError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Failed to initialize browser for ${service}`
@@ -23,25 +55,25 @@ class ScraperService {
         }
     }
 
-    async getBrowser(service) {
+    private async getBrowser(service: string): Promise<Browser> {
         if (!this.browsers.has(service)) {
             await this.initBrowser(service);
         }
-        return this.browsers.get(service);
+        return this.browsers.get(service)!;
     }
 
-    async closeBrowsers() {
+    public async closeBrowsers(): Promise<void> {
         for (const [service, browser] of this.browsers.entries()) {
             try {
                 await browser.close();
                 this.browsers.delete(service);
             } catch (error) {
-                logger.error(`Error closing browser for ${service}:`, error);
+                logger.error(`Error closing browser for ${service}:`, { error });
             }
         }
     }
 
-    async cgcScraper(certNumber) {
+    public async cgcScraper(certNumber: string): Promise<ScrapingResult> {
         const browser = await this.getBrowser('cgc');
         const page = await browser.newPage();
 
@@ -71,11 +103,11 @@ class ScraperService {
             ]);
 
             const gameInfo = await page.evaluate(() => {
-                const result = {
-                    title: document.querySelector('.game-title')?.textContent?.trim(),
-                    grade: document.querySelector('.grade-value')?.textContent?.trim(),
-                    platform: document.querySelector('.platform')?.textContent?.trim(),
-                    certificationDate: document.querySelector('.cert-date')?.textContent?.trim(),
+                const result: GameInfo = {
+                    title: document.querySelector('.game-title')?.textContent?.trim() ?? null,
+                    grade: document.querySelector('.grade-value')?.textContent?.trim() ?? null,
+                    platform: document.querySelector('.platform')?.textContent?.trim() ?? null,
+                    certificationDate: document.querySelector('.cert-date')?.textContent?.trim() ?? null,
                     populationReport: {
                         available: false,
                         data: null
@@ -86,10 +118,10 @@ class ScraperService {
                 if (popReport) {
                     result.populationReport.available = true;
                     result.populationReport.data = {
-                        totalGraded: document.querySelector('.total-graded')?.textContent?.trim(),
-                        higherGrades: document.querySelector('.higher-grades')?.textContent?.trim(),
-                        sameGrade: document.querySelector('.same-grade')?.textContent?.trim(),
-                        lowerGrades: document.querySelector('.lower-grades')?.textContent?.trim()
+                        totalGraded: document.querySelector('.total-graded')?.textContent?.trim() ?? null,
+                        higherGrades: document.querySelector('.higher-grades')?.textContent?.trim() ?? null,
+                        sameGrade: document.querySelector('.same-grade')?.textContent?.trim() ?? null,
+                        lowerGrades: document.querySelector('.lower-grades')?.textContent?.trim() ?? null
                     };
                 }
 
@@ -112,16 +144,15 @@ class ScraperService {
             };
 
         } catch (error) {
-            logger.error(`CGC scraping failed for cert ${certNumber}:`, error);
+            logger.error(`CGC scraping failed for cert ${certNumber}:`, { error });
             throw new AppError(
-                error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
-                error.message || `Failed to retrieve CGC certification: ${certNumber}`
+                error instanceof AppError ? error.statusCode : StatusCodes.INTERNAL_SERVER_ERROR,
+                error instanceof Error ? error.message : `Failed to retrieve CGC certification: ${certNumber}`
             );
         } finally {
             await page.close();
         }
     }
-
 }
 
 // Singleton instance
@@ -138,4 +169,4 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
-module.exports = scraperService; 
+export default scraperService; 

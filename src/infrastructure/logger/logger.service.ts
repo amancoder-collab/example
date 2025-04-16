@@ -1,8 +1,14 @@
-const winston = require('winston');
-const config = require('../../shared/config');
-const BaseService = require('../../shared/utils/base.service');
+import winston, { Logger } from 'winston';
+import config from '@/config';
+import { BaseService } from '@/utils/base.service';
+
+interface LogMeta {
+    [key: string]: unknown;
+}
 
 class LoggerService extends BaseService {
+    private logger!: Logger;
+
     constructor() {
         super();
         if (this.logger) return this;
@@ -38,21 +44,21 @@ class LoggerService extends BaseService {
         }
     }
 
-    info(message, meta = {}) {
+    public info(message: string, meta: LogMeta = {}): void {
         this.logger.info(message, meta);
     }
 
-    error(message, meta = {}) {
+    public error(message: string, meta: LogMeta = {}): void {
         this.logger.error(message, meta);
     }
 
-    warn(message, meta = {}) {
+    public warn(message: string, meta: LogMeta = {}): void {
         this.logger.warn(message, meta);
     }
 
-    debug(message, meta = {}) {
+    public debug(message: string, meta: LogMeta = {}): void {
         this.logger.debug(message, meta);
     }
 }
 
-module.exports = LoggerService.getInstance(); 
+export const logger = LoggerService.getInstance<LoggerService>(); 

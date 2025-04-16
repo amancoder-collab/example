@@ -1,4 +1,8 @@
-const { z } = require('zod');
+import dotenv from 'dotenv';
+import { z } from 'zod';
+
+// Load environment variables
+dotenv.config();
 
 // Environment variables schema
 const envSchema = z.object({
@@ -14,7 +18,7 @@ const envSchema = z.object({
         .default('100'),
     PUPPETEER_HEADLESS: z.string()
         .transform(val => val === 'true')
-        .default('false'),
+        .default('true'),
     CGC_URL: z.string().url().default('https://www.cgcvideogames.com/en-US/cert-lookup'),
     WATA_URL: z.string().url().default('https://www.watagames.com/verify'),
     CGC_TIMEOUT: z.string()
@@ -27,36 +31,47 @@ const envSchema = z.object({
         .default('10000'),
     LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
     LOG_FORMAT: z.enum(['combined', 'common', 'dev', 'short', 'tiny']).default('combined'),
+    CORS_ORIGIN: z.string().optional()
 });
 
-// Configuration schema
-const configSchema = z.object({
-    env: z.enum(['development', 'production', 'test']),
-    port: z.number().positive(),
-    rateLimitWindowMs: z.number().positive(),
-    rateLimitMax: z.number().positive(),
-    puppeteer: z.object({
-        headless: z.boolean(),
-        args: z.array(z.string()),
-        defaultViewport: z.null()
-    }),
-    services: z.object({
-        cgc: z.object({
-            url: z.string().url(),
-            timeout: z.number().positive()
-        }),
-        wata: z.object({
-            url: z.string().url(),
-            timeout: z.number().positive()
-        })
-    }),
-    logger: z.object({
-        level: z.enum(['error', 'warn', 'info', 'debug']),
-        format: z.enum(['combined', 'common', 'dev', 'short', 'tiny'])
-    })
-});
+// Validate environment variables
+const env = envSchema.parse(process.env);
 
-module.exports = {
-    envSchema,
-    configSchema
-}; 
+// Config object
+const config = {
+    env: env.NODE_ENV,
+    port: env.PORT,
+    rateLimitWindowMs: env.RATE_LIMIT_WINDOW_MS,
+    rateLimitMax: env.RATE_LIMIT_MAX,
+    corsOrigin: env.CORS_ORIGIN,
+    puppeteer: {
+        headless: env.PUPPETEER_HEADLESS,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--start-maximized',
+            '--window-size=1920,1080'
+        ],
+        defaultViewport: null
+    },
+    services: {
+        cgc: {
+            url: env.CGC_URL,
+            timeout: env.CGC_TIMEOUT
+        },
+        wata: {
+            url: env.WATA_URL,
+            timeout: env.WATA_TIMEOUT
+        }
+    },
+    logger: {
+        level: env.LOG_LEVEL,
+        format: env.LOG_FORMAT
+    }
+} as const;
+
+// Export config type
+export type Config = typeof config;
+
+// Export config
+export default config; 

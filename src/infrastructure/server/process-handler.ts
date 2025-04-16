@@ -1,43 +1,47 @@
-const logger = require('../logger/logger.service');
+import { logger } from '@/infrastructure/logger/logger.service';
+
+type CleanupHandler = () => Promise<void>;
 
 class ProcessHandler {
+    private cleanupHandlers: Set<CleanupHandler>;
+
     constructor() {
         this.cleanupHandlers = new Set();
     }
 
-    addCleanupHandler(handler) {
+    public addCleanupHandler(handler: CleanupHandler): void {
         this.cleanupHandlers.add(handler);
     }
 
-    async executeCleanup() {
+    private async executeCleanup(): Promise<void> {
         logger.info('Executing cleanup handlers...');
         for (const handler of this.cleanupHandlers) {
             try {
                 await handler();
             } catch (error) {
-                logger.error('Cleanup handler failed:', error);
+                logger.error('Cleanup handler failed:', { error });
             }
         }
     }
 
-    setupProcessHandlers() {
+    public setupProcessHandlers(): void {
         // Graceful shutdown
-        const gracefulShutdown = async () => {
+        const gracefulShutdown = async (): Promise<void> => {
             logger.info('Received shutdown signal. Starting cleanup...');
             await this.executeCleanup();
             process.exit(0);
         };
 
         // Uncaught exception handler
-        process.on('uncaughtException', async (error) => {
-            logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...', error);
+        process.on('uncaughtException', async (error: Error) => {
+            logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...', { error });
             await this.executeCleanup();
             process.exit(1);
         });
 
         // Unhandled rejection handler
-        process.on('unhandledRejection', async (error) => {
-            logger.error('UNHANDLED REJECTION! 💥 Shutting down...', error);
+        process.on('unhandledRejection', async (error: Error | unknown) => {
+            logger.error('UNHANDLED REJECTION! 💥 Shutting down...', { error });
             await this.executeCleanup();
             process.exit(1);
         });
@@ -47,4 +51,4 @@ class ProcessHandler {
     }
 }
 
-module.exports = new ProcessHandler();
+export default new ProcessHandler(); 

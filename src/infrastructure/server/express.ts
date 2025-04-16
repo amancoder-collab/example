@@ -1,16 +1,17 @@
-const express = require('express');
-const morgan = require('morgan');
-const compression = require('compression');
-const { StatusCodes } = require('http-status-codes');
-
-const config = require('../../shared/config');
-const logger = require('../logger/logger.service');
-const security = require('../security/security.service');
-const { errorHandler, AppError } = require('../../shared/middleware/error.middleware');
-const routes = require('../../features/certification-lookup/routes');
-const processHandler = require('./process-handler');
+import express, { Application, Request, Response, NextFunction } from 'express';
+import morgan from 'morgan';
+import compression from 'compression';
+import { StatusCodes } from 'http-status-codes';
+import config from '@/config';
+import security from '@/infrastructure/security/security.service';
+import { errorHandler, AppError } from '@/middleware/error.middleware';
+import processHandler from './process-handler';
+import { logger } from '../logger/logger.service';
+import { Server } from 'http';
 
 class ExpressServer {
+    private app: Application;
+
     constructor() {
         this.app = express();
         this.setupMiddleware();
@@ -19,7 +20,7 @@ class ExpressServer {
         processHandler.setupProcessHandlers();
     }
 
-    setupMiddleware() {
+    private setupMiddleware(): void {
         const securityMiddleware = security.getMiddleware();
         
         // Security middleware
@@ -40,17 +41,17 @@ class ExpressServer {
         this.app.use(express.urlencoded({ extended: true, limit: '10kb' }));
     }
 
-    setupRoutes() {
+    private setupRoutes(): void {
         // Health check
-        this.app.get('/health', (req, res) => {
+        this.app.get('/health', (_req: Request, res: Response) => {
             res.status(200).json({ status: 'ok' });
         });
 
         // API routes
-        this.app.use('/api', routes);
+        // this.app.use('/api', routes);
 
         // Handle 404
-        this.app.all('*', (req, res, next) => {
+        this.app.all('*', (req: Request, _res: Response, next: NextFunction) => {
             next(new AppError(
                 StatusCodes.NOT_FOUND,
                 `Can't find ${req.originalUrl} on this server!`
@@ -58,19 +59,19 @@ class ExpressServer {
         });
     }
 
-    setupErrorHandling() {
+    private setupErrorHandling(): void {
         this.app.use(errorHandler);
     }
 
-    start() {
+    public start(): Server {
         return this.app.listen(config.port, () => {
             logger.info(`Server running in ${config.env} mode on port ${config.port}`);
         });
     }
 
-    getApp() {
+    public getApp(): Application {
         return this.app;
     }
 }
 
-module.exports = new ExpressServer(); 
+export default new ExpressServer(); 
