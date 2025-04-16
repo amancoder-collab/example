@@ -1,10 +1,8 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-// Load environment variables
-dotenv.config();
+dotenv.config({ path: '.env' });
 
-// Environment variables schema
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.string().transform(Number).pipe(z.number().positive()).default('3000'),
@@ -34,10 +32,8 @@ const envSchema = z.object({
     CORS_ORIGIN: z.string().optional()
 });
 
-// Validate environment variables
 const env = envSchema.parse(process.env);
 
-// Config object
 const config = {
     env: env.NODE_ENV,
     port: env.PORT,
@@ -70,8 +66,6 @@ const config = {
     }
 } as const;
 
-// Export config type
 export type Config = typeof config;
 
-// Export config
 export default config; 
