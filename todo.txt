@@ -1,6 +1,6 @@
 create a resposne handler or middleware like nestjs
 create a exception middleware similar like nestjs
-
+make the response and exception handling like nestjs so i just have to return my data and it will be automattically converted to a common response
 install and configure bullmq
 setup postgres
 setup redis
