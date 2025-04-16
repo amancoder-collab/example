@@ -20,17 +20,27 @@ export const errorHandler = (
             stack: error.stack
         });
 
-        res.error(error.message, statusCode);
+        res.status(statusCode).json({
+            status: 'error',
+            message: error.message,
+            stack: error.stack
+        });
     } else {
         // Production mode
         logger.error('Error 💥', { error });
 
         // Operational, trusted error: send message to client
         if (error.isOperational) {
-            res.error(error.message, statusCode);
+            res.status(statusCode).json({
+                status: 'error',
+                message: error.message
+            });
         } else {
             // Programming or other unknown error: don't leak error details
-            res.error('Something went wrong!', StatusCodes.INTERNAL_SERVER_ERROR);
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                status: 'error',
+                message: 'Something went wrong!'
+            });
         }
     }
 }; 

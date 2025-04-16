@@ -1,5 +1,4 @@
 import config from '@/config';
-import { BaseService } from '@/shared/utils/base.service';
 import { Request, Response, NextFunction } from 'express';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import helmet from 'helmet';
@@ -11,15 +10,16 @@ interface SecurityMiddleware {
     cors: CorsMiddleware;
 }
 
-class SecurityService extends BaseService {
+class SecurityService {
+    private static instance: SecurityService;
     private limiter!: RateLimitRequestHandler;
     private helmetMiddleware!: ReturnType<typeof helmet>;
     private corsMiddleware!: CorsMiddleware;
 
-    constructor() {
-        super();
-        const instance = (this.constructor as any).instance;
-        if (instance) return instance;
+    private constructor() {
+        if (SecurityService.instance) {
+            return SecurityService.instance;
+        }
 
         this.limiter = rateLimit({
             windowMs: config.rateLimitWindowMs,
@@ -61,6 +61,8 @@ class SecurityService extends BaseService {
             res.header('Access-Control-Max-Age', '86400'); // 24 hours
             next();
         };
+
+        SecurityService.instance = this;
     }
 
     public getMiddleware(): SecurityMiddleware {
@@ -70,6 +72,13 @@ class SecurityService extends BaseService {
             cors: this.corsMiddleware
         };
     }
+
+    public static getInstance(): SecurityService {
+        if (!SecurityService.instance) {
+            SecurityService.instance = new SecurityService();
+        }
+        return SecurityService.instance;
+    }
 }
 
-export default SecurityService.getInstance<SecurityService>(); 
+export default SecurityService.getInstance(); 

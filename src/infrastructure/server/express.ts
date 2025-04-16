@@ -9,6 +9,10 @@ import { logger } from '../logger/logger.service';
 import { Server } from 'http';
 import { errorHandler } from '@/shared/exceptions/error.middleware';
 import { AppError } from '@/shared/exceptions';
+import swagger from '@/infrastructure/swagger/swagger';
+
+// Import routes
+import authRoutes from '@/modules/auth/routes/auth.routes';
 
 class ExpressServer {
     private app: Application;
@@ -23,7 +27,7 @@ class ExpressServer {
 
     private setupMiddleware(): void {
         const securityMiddleware = security.getMiddleware();
-        
+
         // Security middleware
         this.app.use(securityMiddleware.helmet);
         this.app.use(securityMiddleware.cors);
@@ -48,8 +52,11 @@ class ExpressServer {
             res.status(200).json({ status: 'ok' });
         });
 
+        // Setup Swagger
+        swagger.setup(this.app);
+
         // API routes
-        // this.app.use('/api', routes);
+        this.app.use('/api/auth', authRoutes);
 
         // Handle 404
         this.app.all('*', (req: Request, _res: Response, next: NextFunction) => {

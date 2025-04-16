@@ -12,10 +12,8 @@ export const lookupCertification = async (
         const certNumber = req.params.certNumber;
         const service = certificationService;
         
-        // Get certification data
         const data = await service.lookup(certNumber);
         
-        // Validate response data
         const validatedData = validateResponse(data);
         
         res.json(validatedData);
