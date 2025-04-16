@@ -1,10 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { validateCertNumber, validateResponse } from '../validators/certification.validator';
-import CertificationService from '../services/certification.service';
-import logger from '../../../infrastructure/logger/logger.service';
-import { AppError } from '../../../shared/middleware/error.middleware';
+import { logger } from '@/infrastructure/logger/logger.service';
+import { NextFunction, Request, Response } from 'express';
+import certificationService from '../services/certification.service';
+import { validateResponse } from '../validators/certification.validator';
 
-// Route handlers
 export const lookupCertification = async (
     req: Request,
     res: Response,
@@ -12,7 +10,7 @@ export const lookupCertification = async (
 ): Promise<void> => {
     try {
         const certNumber = req.params.certNumber;
-        const service = CertificationService.getInstance<CertificationService>();
+        const service = certificationService;
         
         // Get certification data
         const data = await service.lookup(certNumber);
@@ -26,5 +24,3 @@ export const lookupCertification = async (
         next(error);
     }
 };
-
-export { validateCertNumber }; 

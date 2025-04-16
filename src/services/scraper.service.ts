@@ -1,6 +1,6 @@
 import config from "@/config";
 import { logger } from "@/infrastructure/logger/logger.service";
-import { AppError } from "@/middleware/error.middleware";
+import { AppError } from "@/shared/exceptions";
 import { StatusCodes } from "http-status-codes";
 import puppeteer, { Browser } from "puppeteer";
 

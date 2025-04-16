@@ -1,10 +1,10 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { StatusCodes } from 'http-status-codes';
-import config from '../../../shared/config';
-import logger from '../../../infrastructure/logger/logger.service';
-import { AppError } from '../../../shared/middleware/error.middleware';
-import processHandler from '../../../infrastructure/server/process-handler';
-import { BaseService } from '../../../shared/utils/base.service';
+import processHandler from '@/infrastructure/server/process-handler';
+import { BaseService } from '@/shared/utils/base.service';
+import { logger } from '@/infrastructure/logger/logger.service';
+import { AppError } from '@/shared/exceptions';
+import config from '@/config';
 
 interface PopulationReport {
     available: boolean;
@@ -37,7 +37,7 @@ interface CertificationLookupResult {
 }
 
 class CertificationService extends BaseService {
-    private browsers: Map<string, Browser>;
+    private browsers: Map<string, Browser> = new Map();
 
     constructor() {
         super();
@@ -53,11 +53,14 @@ class CertificationService extends BaseService {
 
     private async initBrowser(service: string): Promise<Browser> {
         try {
-            const browser = await puppeteer.launch(config.puppeteer);
+            const browser = await puppeteer.launch({
+                ...config.puppeteer,
+                args: [...config.puppeteer.args]
+            });
             this.browsers.set(service, browser);
             return browser;
         } catch (error) {
-            logger.error(`Failed to initialize browser for ${service}:`, error);
+            logger.error(`Failed to initialize browser for ${service}:`, { error });
             throw new AppError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Failed to initialize browser for ${service}`
@@ -78,7 +81,7 @@ class CertificationService extends BaseService {
                 await browser.close();
                 this.browsers.delete(service);
             } catch (error) {
-                logger.error(`Error closing browser for ${service}:`, error);
+                logger.error(`Error closing browser for ${service}:`, { error });
             }
         }
     }
@@ -185,7 +188,7 @@ class CertificationService extends BaseService {
             };
 
         } catch (error) {
-            logger.error(`CGC scraping failed for cert ${certNumber}:`, error);
+            logger.error(`CGC scraping failed for cert ${certNumber}:`, { error });
             throw new AppError(
                 error instanceof AppError ? error.statusCode : StatusCodes.INTERNAL_SERVER_ERROR,
                 error instanceof Error ? error.message : `Failed to retrieve CGC certification: ${certNumber}`

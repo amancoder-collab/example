@@ -4,10 +4,11 @@ import compression from 'compression';
 import { StatusCodes } from 'http-status-codes';
 import config from '@/config';
 import security from '@/infrastructure/security/security.service';
-import { errorHandler, AppError } from '@/middleware/error.middleware';
 import processHandler from './process-handler';
 import { logger } from '../logger/logger.service';
 import { Server } from 'http';
+import { errorHandler } from '@/shared/exceptions/error.middleware';
+import { AppError } from '@/shared/exceptions';
 
 class ExpressServer {
     private app: Application;
