@@ -21,17 +21,20 @@ A robust Node.js API for looking up video game certification information from mu
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd game-cert-lookup
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a `.env` file in the root directory:
+
 ```env
 NODE_ENV=development
 PORT=3000
@@ -72,41 +75,43 @@ GET /api/lookup/:certNumber
 #### Response Format
 
 Success Response:
+
 ```json
 {
-    "success": true,
-    "certNumber": "12345678",
-    "resultsFound": 2,
-    "results": [
-        {
-            "success": true,
-            "source": "CGC",
-            "certNumber": "12345678",
-            "data": {
-                "title": "Game Title",
-                "grade": "9.8 A++",
-                "platform": "Nintendo NES",
-                "certificationDate": "2023-01-01",
-                "populationReport": {
-                    "available": true,
-                    "data": {
-                        "totalGraded": "100",
-                        "higherGrades": "10",
-                        "sameGrade": "15",
-                        "lowerGrades": "75"
-                    }
-                }
-            }
+  "success": true,
+  "certNumber": "12345678",
+  "resultsFound": 2,
+  "results": [
+    {
+      "success": true,
+      "source": "CGC",
+      "certNumber": "12345678",
+      "data": {
+        "title": "Game Title",
+        "grade": "9.8 A++",
+        "platform": "Nintendo NES",
+        "certificationDate": "2023-01-01",
+        "populationReport": {
+          "available": true,
+          "data": {
+            "totalGraded": "100",
+            "higherGrades": "10",
+            "sameGrade": "15",
+            "lowerGrades": "75"
+          }
         }
-    ]
+      }
+    }
+  ]
 }
 ```
 
 Error Response:
+
 ```json
 {
-    "status": "error",
-    "message": "Error message"
+  "status": "error",
+  "message": "Error message"
 }
 ```
 
@@ -122,6 +127,7 @@ Error Response:
 ## Error Handling
 
 The API implements a comprehensive error handling system:
+
 - Operational errors (4xx)
 - Programming errors (5xx)
 - Unhandled rejections
@@ -160,24 +166,28 @@ src/
 ## Best Practices Implemented
 
 1. **Security**
+
    - Rate limiting
    - Security headers
    - Input validation
    - CORS protection
 
 2. **Error Handling**
+
    - Global error handling
    - Custom error classes
    - Operational vs Programming errors
    - Graceful shutdown
 
 3. **Performance**
+
    - Response compression
    - Concurrent scraping
    - Browser instance management
    - Request timeout handling
 
 4. **Code Quality**
+
    - ESLint configuration
    - Proper project structure
    - Dependency management
@@ -199,4 +209,4 @@ ISC
 2. Create your feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a new Pull Request 
+5. Create a new Pull Request

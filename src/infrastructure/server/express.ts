@@ -10,9 +10,11 @@ import { Server } from "http";
 import { errorHandler } from "@/shared/exceptions/error.middleware";
 import { AppError } from "@/shared/exceptions";
 import swagger from "@/infrastructure/swagger/swagger";
+import { responseFormatter } from "@/shared/middleware/response.middleware";
 
 // Import routes
 import authRoutes from "@/modules/auth/routes/auth.routes";
+import certificationRoutes from "@/modules/certification-lookup/routes";
 
 class ExpressServer {
   private app: Application;
@@ -44,6 +46,9 @@ class ExpressServer {
     // Body parser
     this.app.use(express.json({ limit: "10kb" }));
     this.app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+    // Response formatter - must be after body parser and before routes
+    this.app.use(responseFormatter());
   }
 
   private setupRoutes(): void {
@@ -53,7 +58,15 @@ class ExpressServer {
 
     swagger.setup(this.app);
 
+    // API routes
     this.app.use("/api/auth", authRoutes);
+    this.app.use("/api/certifications", certificationRoutes);
+
+    logger.info(`Routes registered: 
+      - /health
+      - /api/auth/*
+      - /api/certifications/lookup/:certNumber
+    `);
   }
 
   private setupErrorHandling(): void {

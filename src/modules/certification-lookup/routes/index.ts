@@ -1,13 +1,14 @@
-import { Router } from 'express';
-import { lookupCertification } from '../controllers/certification.controller';
-import { validateCertNumber } from '../validators/certification.validator';
+import { Router } from "express";
+import { lookupCertification } from "../controllers/certification.controller";
+import { validate } from "@/shared/validators/global.validator";
+import { certNumberSchema } from "../validators/certification.validator";
 
 const router = Router();
 
 router.get(
-    '/lookup/:certNumber',
-    validateCertNumber,
-    lookupCertification
+  "/lookup/:certNumber",
+  validate(certNumberSchema, { source: "params" }),
+  lookupCertification
 );
 
-export default router; 
+export default router;

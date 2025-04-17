@@ -45,3 +45,348 @@
 {"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T07:15:38.627Z"}
 {"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T07:15:52.446Z"}
 {"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T07:15:53.028Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:23:26.026Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:29.293Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:29.610Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:31.401Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:31.728Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:34.275Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:34.588Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:37.121Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:37.493Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:41.358Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:41.698Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:45.121Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:45.441Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:25:48.011Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:25:48.357Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:26:10.587Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:26:10.906Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:27:40.993Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:27:41.348Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:27:49.623Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:27:49.963Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:27:55.054Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:27:55.400Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:28:06.310Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:28:06.653Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:28:07.264Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:28:07.604Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:33:02.214Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:33:02.671Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:34:16.972Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:34:17.320Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:15.545Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:15.925Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:18.632Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:18.985Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:25.175Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:25.573Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:28.184Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:28.589Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:30.058Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:30.402Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:37.875Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:38.256Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:39.736Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:40.114Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:48.367Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:48.697Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:37:57.629Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:37:57.958Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:39:00.494Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:39:00.909Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:42:08.223Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:42:08.609Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:42:31.027Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:42:31.352Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:43:21.455Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:43:21.873Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:43:43.879Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:43:44.228Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:43:52.142Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:43:52.520Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:44:03.481Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:44:03.888Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:44:18.512Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:44:18.912Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:44:32.410Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:44:32.785Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:44:34.715Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:44:35.145Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:44:39.885Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:44:40.301Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:44:53.074Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:44:53.441Z"}
+{"error":{"isOperational":true,"status":"fail","statusCode":400},"level":"error","message":"Error 💥 Password must contain at least 1 number","stack":"Error: Password must contain at least 1 number\n    at Function.badRequest (/home/aman/Desktop/video-games-id/src/shared/exceptions/app.error.ts:24:16)\n    at /home/aman/Desktop/video-games-id/src/shared/validators/global.validator.ts:172:20\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:117:3)\n    at handle (/home/aman/Desktop/video-games-id/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at /home/aman/Desktop/video-games-id/node_modules/router/index.js:295:15\n    at processParams (/home/aman/Desktop/video-games-id/node_modules/router/index.js:582:12)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/index.js:291:5)","status":"fail","timestamp":"2025-04-17T16:45:06.805Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:46:52.193Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:46:52.577Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:46:57.875Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:46:58.234Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:47:00.203Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:47:00.542Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:47:02.605Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:47:02.954Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:47:11.362Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:47:11.704Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:49:20.534Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:49:20.941Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:50:39.845Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:50:40.275Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:52:38.181Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:52:38.552Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:53:11.902Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:53:12.268Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:53:17.364Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:53:17.775Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:56:43.568Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:56:43.934Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:56:53.756Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:56:54.127Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:57:17.578Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:57:17.907Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:58:17.229Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:58:17.598Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T16:59:29.672Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T16:59:30.008Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:00:41.019Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:00:41.410Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:07.529Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:07.954Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:14.209Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:14.571Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:22.664Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:23.024Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:26.018Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:26.376Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:32.870Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:33.223Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:44.199Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:44.559Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:01:48.026Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:01:48.354Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:05:17.556Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:05:17.910Z"}
+{"error":{"isOperational":true,"status":"fail","statusCode":400},"level":"error","message":"Error 💥 Password must contain at least 1 number","stack":"Error: Password must contain at least 1 number\n    at Function.badRequest (/home/aman/Desktop/video-games-id/src/shared/exceptions/app.error.ts:24:16)\n    at /home/aman/Desktop/video-games-id/src/shared/validators/global.validator.ts:172:20\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:117:3)\n    at handle (/home/aman/Desktop/video-games-id/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at /home/aman/Desktop/video-games-id/node_modules/router/index.js:295:15\n    at processParams (/home/aman/Desktop/video-games-id/node_modules/router/index.js:582:12)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/index.js:291:5)","status":"fail","timestamp":"2025-04-17T17:19:07.830Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:19:50.732Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:19:51.121Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:22:41.556Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:22:42.021Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:23:24.490Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:23:24.860Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:23:39.159Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:23:39.550Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:24:04.181Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:24:04.585Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:25:59.295Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:25:59.672Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:26:00.787Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:26:01.207Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:26:23.764Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:26:24.163Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:26:27.632Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:26:28.097Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:26:47.798Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:26:48.216Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:30:23.727Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:30:24.131Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:31:10.253Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:31:10.689Z"}
+{"error":{"isOperational":true,"status":"fail","statusCode":400},"level":"error","message":"Error Password must contain at least 1 number","stack":"Error: Password must contain at least 1 number\n    at Function.badRequest (/home/aman/Desktop/video-games-id/src/shared/exceptions/app.error.ts:24:16)\n    at /home/aman/Desktop/video-games-id/src/shared/validators/global.validator.ts:172:20\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:117:3)\n    at handle (/home/aman/Desktop/video-games-id/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at /home/aman/Desktop/video-games-id/node_modules/router/index.js:295:15\n    at processParams (/home/aman/Desktop/video-games-id/node_modules/router/index.js:582:12)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/index.js:291:5)","status":"fail","timestamp":"2025-04-17T17:32:22.441Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:36:53.295Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:36:53.657Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:36:55.242Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:36:55.621Z"}
+{"error":{"isOperational":true,"status":"fail","statusCode":400},"level":"error","message":"Error Password must contain at least 1 number","stack":"Error: Password must contain at least 1 number\n    at Function.badRequest (/home/aman/Desktop/video-games-id/src/shared/exceptions/app.error.ts:24:16)\n    at /home/aman/Desktop/video-games-id/src/shared/validators/global.validator.ts:172:20\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:117:3)\n    at handle (/home/aman/Desktop/video-games-id/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at /home/aman/Desktop/video-games-id/node_modules/router/index.js:295:15\n    at processParams (/home/aman/Desktop/video-games-id/node_modules/router/index.js:582:12)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/index.js:291:5)","status":"fail","timestamp":"2025-04-17T17:37:07.850Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:37:13.664Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:37:14.032Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:38:31.026Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:38:31.459Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:38:46.246Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:38:46.660Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:39:57.187Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:39:57.596Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:39:58.596Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:39:59.013Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:40:07.717Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:40:08.118Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:40:25.776Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:40:26.147Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:40:30.517Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:40:30.883Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:40:34.081Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:40:34.441Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:40:35.359Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:40:35.714Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:40:36.762Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:40:37.122Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:42:01.832Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:42:02.239Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:42:15.759Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:42:16.152Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:42:33.551Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:42:33.996Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:42:36.888Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:42:37.291Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:42:41.147Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:42:41.550Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:43:04.863Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:43:05.291Z"}
+{"error":{"isOperational":true,"status":"fail","statusCode":400},"level":"error","message":"Error Password must contain at least 1 number","stack":"Error: Password must contain at least 1 number\n    at Function.badRequest (/home/aman/Desktop/video-games-id/src/shared/exceptions/app.error.ts:24:16)\n    at /home/aman/Desktop/video-games-id/src/shared/validators/global.validator.ts:172:20\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:117:3)\n    at handle (/home/aman/Desktop/video-games-id/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at /home/aman/Desktop/video-games-id/node_modules/router/index.js:295:15\n    at processParams (/home/aman/Desktop/video-games-id/node_modules/router/index.js:582:12)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/index.js:291:5)","status":"fail","timestamp":"2025-04-17T17:43:59.090Z"}
+{"error":{"isOperational":true,"status":"fail","statusCode":400},"level":"error","message":"Error Required","stack":"Error: Required\n    at Function.badRequest (/home/aman/Desktop/video-games-id/src/shared/exceptions/app.error.ts:24:16)\n    at /home/aman/Desktop/video-games-id/src/shared/validators/global.validator.ts:172:20\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/home/aman/Desktop/video-games-id/node_modules/router/lib/route.js:117:3)\n    at handle (/home/aman/Desktop/video-games-id/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/home/aman/Desktop/video-games-id/node_modules/router/lib/layer.js:152:17)\n    at /home/aman/Desktop/video-games-id/node_modules/router/index.js:295:15\n    at processParams (/home/aman/Desktop/video-games-id/node_modules/router/index.js:582:12)\n    at next (/home/aman/Desktop/video-games-id/node_modules/router/index.js:291:5)","status":"fail","timestamp":"2025-04-17T17:44:25.758Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:47:32.595Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:47:32.970Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:48:17.886Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:48:18.271Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:48:38.332Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:48:38.812Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:48:58.907Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:48:59.352Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:50:02.513Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:50:02.922Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:52:04.512Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:52:05.113Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:52:39.153Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:52:39.690Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:53:03.777Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:53:04.277Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:53:29.178Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:53:29.688Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:53:34.203Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:09.543Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:10.062Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:10.063Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:17.602Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:18.133Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:18.133Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:20.840Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:21.357Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:21.385Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:28.006Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:28.548Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:28.555Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:30.235Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:30.772Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:30.805Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:32.010Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:32.532Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:32.548Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:34.739Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:35.293Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:35.304Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:54.887Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:55.407Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:54:57.296Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:54:57.826Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:54:57.831Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:55:03.092Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:55:03.097Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:55:31.004Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:55:31.497Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:55:31.502Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:55:31.499Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:55:31.503Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:56:51.456Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:56:51.462Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:57:47.323Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:57:47.861Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:57:47.867Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:57:55.512Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:57:55.971Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:57:55.975Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:57:59.108Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:57:59.554Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:57:59.558Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:03.504Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:03.952Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:03.955Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:05.869Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:06.333Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:06.337Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:14.031Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:14.522Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:14.526Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:16.425Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:16.880Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:16.884Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:23.989Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:24.520Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:24.524Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:25.655Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:26.127Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:26.130Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:28.363Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:28.828Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:28.832Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:31.238Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:31.766Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:31.770Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:35.269Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:35.771Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:35.775Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:39.552Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:40.039Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:40.043Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:41.625Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:42.072Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:42.076Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:43.791Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:44.253Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:44.257Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:53.840Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:54.311Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:54.316Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:56.123Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:56.612Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:56.616Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:58:59.115Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:58:59.644Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:58:59.650Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:59:31.523Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:59:32.026Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:59:32.031Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T17:59:48.945Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T17:59:49.461Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T17:59:49.466Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:00:05.374Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:00:05.937Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:00:05.942Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:00:27.382Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:00:27.909Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:00:27.914Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:00:44.995Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:00:45.551Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:00:45.555Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:28.434Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:28.942Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:28.946Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:30.130Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:30.593Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:30.598Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:31.907Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:32.344Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:32.348Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:34.482Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:34.975Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:34.979Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:38.245Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:38.691Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:38.695Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:39.350Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:39.852Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:39.856Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:40.455Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:40.902Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:40.906Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:41.507Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:41.929Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:41.933Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:43.875Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:44.304Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:44.308Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:48.828Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:49.337Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:49.341Z"}
+{"level":"info","message":"Received shutdown signal. Starting cleanup...","timestamp":"2025-04-17T18:01:50.316Z"}
+{"level":"info","message":"Routes registered: \n      - /health\n      - /api/auth/*\n      - /api/certifications/lookup/:certNumber\n    ","timestamp":"2025-04-17T18:01:50.777Z"}
+{"level":"info","message":"Server running in development mode on port 3000","timestamp":"2025-04-17T18:01:50.782Z"}
