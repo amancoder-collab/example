@@ -14,19 +14,10 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}/api`,
+        url: `http://localhost:${config.port}`,
         description: 'Development server',
       },
     ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
   },
   apis: [
     path.join(__dirname, '../../modules/**/routes/*.ts'),
@@ -38,11 +29,15 @@ const swaggerSpec = swaggerJSDoc(options);
 
 export default {
   setup(app: Application): void {
-    // Swagger API docs
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    // Swagger API docs at /docs
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+      swaggerOptions: {
+        security: [{ bearerAuth: [] }],
+      },
+    }));
 
     // API JSON documentation endpoint
-    app.get('/api-docs.json', (req, res) => {
+    app.get('/docs.json', (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       res.send(swaggerSpec);
     });

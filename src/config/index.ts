@@ -14,9 +14,6 @@ const envSchema = z.object({
         .transform(Number)
         .pipe(z.number().positive())
         .default('100'),
-    PUPPETEER_HEADLESS: z.string()
-        .transform(val => val === 'true')
-        .default('true'),
     CGC_URL: z.string().url().default('https://www.cgcvideogames.com/en-US/cert-lookup'),
     WATA_URL: z.string().url().default('https://www.watagames.com/verify'),
     CGC_TIMEOUT: z.string()
@@ -29,7 +26,9 @@ const envSchema = z.object({
         .default('10000'),
     LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
     LOG_FORMAT: z.enum(['combined', 'common', 'dev', 'short', 'tiny']).default('combined'),
-    CORS_ORIGIN: z.string().optional()
+    CORS_ORIGIN: z.string().optional(),
+    JWT_SECRET: z.string(),
+    JWT_EXPIRES_IN: z.string()
 });
 
 const env = envSchema.parse(process.env);
@@ -40,15 +39,9 @@ const config = {
     rateLimitWindowMs: env.RATE_LIMIT_WINDOW_MS,
     rateLimitMax: env.RATE_LIMIT_MAX,
     corsOrigin: env.CORS_ORIGIN,
-    puppeteer: {
-        headless: env.PUPPETEER_HEADLESS,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--start-maximized',
-            '--window-size=1920,1080'
-        ],
-        defaultViewport: null
+    jwt: {
+        secret: env.JWT_SECRET,
+        expiresIn: env.JWT_EXPIRES_IN
     },
     services: {
         cgc: {

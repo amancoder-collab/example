@@ -41,8 +41,14 @@ class ScraperService {
   private async initBrowser(service: string): Promise<Browser> {
     try {
       const browser = await puppeteer.launch({
-        ...config.puppeteer,
-        args: [...config.puppeteer.args],
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--start-maximized",
+          "--window-size=1920,1080",
+        ],
+        defaultViewport: null,
       });
       this.browsers.set(service, browser);
       return browser;
