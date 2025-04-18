@@ -1,5 +1,5 @@
 correct the validation error response structure
 scrap the population report and save it to database
+
 install and configure bullmq
-setup postgres
 setup redis
