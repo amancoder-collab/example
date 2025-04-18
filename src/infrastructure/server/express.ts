@@ -1,21 +1,16 @@
-import express, { Application, Request, Response, NextFunction } from "express";
-import morgan from "morgan";
-import compression from "compression";
-import { StatusCodes } from "http-status-codes";
 import config from "@/config";
 import security from "@/infrastructure/security/security.service";
-import processHandler from "./process-handler";
-import { logger } from "../logger/logger.service";
-import { Server } from "http";
-import { errorHandler } from "@/shared/exceptions/error.middleware";
-import { AppError } from "@/shared/exceptions";
 import swagger from "@/infrastructure/swagger/swagger";
+import { errorHandler } from "@/shared/exceptions/error.middleware";
 import { responseFormatter } from "@/shared/middleware/response.middleware";
-
-// Import routes
+import compression from "compression";
+import express, { Application, Request, Response } from "express";
+import { Server } from "http";
+import morgan from "morgan";
+import { logger } from "../logger/logger.service";
+import processHandler from "./process-handler";
 import authRoutes from "@/modules/auth/routes/auth.routes";
-import certificationRoutes from "@/modules/certification-lookup/routes";
-
+import videoGameRoutes from "@/modules/video-games/routes/certification.router";
 class ExpressServer {
   private app: Application;
 
@@ -60,13 +55,7 @@ class ExpressServer {
 
     // API routes
     this.app.use("/api/auth", authRoutes);
-    this.app.use("/api/certifications", certificationRoutes);
-
-    logger.info(`Routes registered: 
-      - /health
-      - /api/auth/*
-      - /api/certifications/lookup/:certNumber
-    `);
+    this.app.use("/api/video-games", videoGameRoutes);
   }
 
   private setupErrorHandling(): void {

@@ -11,7 +11,7 @@ const envSchema = z.object({
     .string()
     .transform(Number)
     .pipe(z.number().positive())
-    .default("3000"),
+    .default("8000"),
   RATE_LIMIT_WINDOW_MS: z
     .string()
     .transform(Number)

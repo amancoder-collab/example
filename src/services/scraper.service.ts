@@ -110,7 +110,6 @@ class ScraperService {
         "fieldset.certlookup-search__inputs button.button--small.button--secondary"
       );
 
-      // Wait for either success or error state
       const [response] = await Promise.all([
         page.waitForResponse(
           (response) =>
@@ -184,6 +183,131 @@ class ScraperService {
         error instanceof Error
           ? error.message
           : `Failed to retrieve CGC certification: ${certNumber}`
+      );
+    } finally {
+      // await page.close();
+    }
+  }
+
+  public async wataScraper(certNumber: string): Promise<ScrapingResult> {
+    const browser = await this.getBrowser("wata");
+    const page = await browser.newPage();
+
+    try {
+      await page.setViewport({
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+      });
+
+      await page.goto(config.services.wata.url, {
+        waitUntil: "networkidle0",
+        timeout: config.services.wata.timeout,
+      });
+
+      logger.info(`Searching WATA certification: ${certNumber}`);
+
+      // Find and fill the certification number input
+      await page.waitForSelector("#certNumber");
+      await page.type("#certNumber", certNumber);
+
+      // Click the search button
+      await page.click(".search-button");
+
+      // Wait for results to load or timeout
+      const resultsSelector = ".certification-results";
+      const errorSelector = ".error-message";
+
+      const resultElement = await Promise.race([
+        page
+          .waitForSelector(resultsSelector, {
+            timeout: config.services.wata.timeout,
+          })
+          .then(() => ({ type: "success", element: resultsSelector })),
+        page
+          .waitForSelector(errorSelector, {
+            timeout: config.services.wata.timeout,
+          })
+          .then(() => ({ type: "error", element: errorSelector })),
+      ]).catch(() => ({ type: "timeout", element: null }));
+
+      if (resultElement.type === "error") {
+        throw new AppError(
+          StatusCodes.NOT_FOUND,
+          `No results found for WATA certification number: ${certNumber}`
+        );
+      }
+
+      if (resultElement.type === "timeout") {
+        throw new AppError(
+          StatusCodes.GATEWAY_TIMEOUT,
+          `Timeout while searching for WATA certification: ${certNumber}`
+        );
+      }
+
+      // Extract game information from the page
+      const gameInfo = await page.evaluate(() => {
+        const result: GameInfo = {
+          title:
+            document.querySelector(".game-title")?.textContent?.trim() ?? null,
+          grade:
+            document.querySelector(".grade-value")?.textContent?.trim() ?? null,
+          platform:
+            document.querySelector(".platform-name")?.textContent?.trim() ??
+            null,
+          certificationDate:
+            document.querySelector(".cert-date")?.textContent?.trim() ?? null,
+          populationReport: {
+            available: false,
+            data: null,
+          },
+        };
+
+        const popReport = document.querySelector(".population-data");
+        if (popReport) {
+          result.populationReport.available = true;
+          result.populationReport.data = {
+            totalGraded:
+              document.querySelector(".total-games")?.textContent?.trim() ??
+              null,
+            higherGrades:
+              document.querySelector(".higher-grades")?.textContent?.trim() ??
+              null,
+            sameGrade:
+              document.querySelector(".same-grade")?.textContent?.trim() ??
+              null,
+            lowerGrades:
+              document.querySelector(".lower-grades")?.textContent?.trim() ??
+              null,
+          };
+        }
+
+        return result;
+      });
+
+      if (!gameInfo.title) {
+        throw new AppError(
+          StatusCodes.NOT_FOUND,
+          `No results found for WATA certification number: ${certNumber}`
+        );
+      }
+
+      logger.info(`Successfully retrieved WATA data for cert: ${certNumber}`);
+      return {
+        success: true,
+        source: "WATA",
+        certNumber,
+        data: gameInfo,
+      };
+    } catch (error) {
+      logger.error(`WATA scraping failed for cert ${certNumber}:`, { error });
+      throw new AppError(
+        error instanceof AppError
+          ? error.statusCode
+          : StatusCodes.INTERNAL_SERVER_ERROR,
+        error instanceof Error
+          ? error.message
+          : `Failed to retrieve WATA certification: ${certNumber}`
       );
     } finally {
       await page.close();
