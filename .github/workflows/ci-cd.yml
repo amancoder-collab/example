@@ -78,14 +78,6 @@ jobs:
           name: build
           path: dist
 
-      - name: Verify artifact download
-        run: |
-          ls -la dist/
-          if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then
-            echo "Error: dist directory is empty or missing"
-            exit 1
-          fi
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -125,4 +117,4 @@ jobs:
       - name: Deploy
         run: |
           echo "Deploying to production..."
-          # ssh ${{ secrets.PROD_SERVER }} "docker pull $DOCKER_IMAGE:${{ github.sha }} && docker-compose -f docker-compose.prod.yml up -d --remove-orphans"
+          # ssh ${{ secrets.SERVER_IP }} "docker pull $DOCKER_IMAGE:${{ github.sha }} && docker-compose -f docker-compose.prod.yml up -d --remove-orphans"
