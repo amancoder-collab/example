@@ -12,22 +12,12 @@ env:
   REGISTRY: docker.io
 
 jobs:
-  install-deps:
-    name: Install Dependencies
+  test:
+    name: Lint and Test
     runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.deps-cache.outputs.cache-hit }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Cache node_modules
-        id: deps-cache
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: deps-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: deps-${{ runner.os }}-
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -38,56 +28,38 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Upload workspace
-        uses: actions/upload-artifact@v3
-        with:
-          name: workspace
-          path: |
-            ./
-            !./node_modules/.cache   # optional: reduce upload size
-            node_modules
-
-  lint:
-    name: Lint Code
-    needs: install-deps
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download workspace
-        uses: actions/download-artifact@v3
-        with:
-          name: workspace
-          path: .
-
       - name: Run ESLint
         run: npm run lint
-
-  test:
-    name: Run Tests
-    needs: install-deps
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download workspace
-        uses: actions/download-artifact@v3
-        with:
-          name: workspace
-          path: .
 
       - name: Run Tests
         run: npm test
 
   build:
     name: Build Project
-    needs: [lint, test]
+    needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Download workspace
-        uses: actions/download-artifact@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          name: workspace
-          path: .
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build Project
         run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: dist # Adjust to your build output directory
+
 
   docker:
     name: Docker Build & Push
@@ -95,7 +67,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # needed for docker context
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build
+          path: dist
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
