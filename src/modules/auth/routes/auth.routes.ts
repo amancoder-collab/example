@@ -3,10 +3,12 @@ import authController from "../controllers/auth.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { validate } from "@/shared/validators/validation.middleware";
 import {
+  createUserSchema,
   loginDtoSchema,
   registerDtoSchema,
   updateProfileDtoSchema,
 } from "../dto/auth.dto";
+import { asyncHandler } from "@/shared/asyncHandler";
 
 const router = express.Router();
 
@@ -16,6 +18,50 @@ const router = express.Router();
  *   name: Auth
  *   description: Authentication endpoints
  */
+
+/**
+ * @swagger
+ * /api/test/create-user:
+ *   post:
+ *     summary: Create a test user (for load testing)
+ *     tags: [Test]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *       500:
+ *         description: Internal Server Error
+ */
+// router.post("/create-user", validate(createUserSchema), authController.createUser);
 
 /**
  * @swagger
@@ -54,7 +100,11 @@ const router = express.Router();
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", validate(loginDtoSchema), authController.login);
+router.post(
+  "/login",
+  validate(loginDtoSchema),
+  asyncHandler(authController.login)
+);
 
 /**
  * @swagger

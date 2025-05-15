@@ -78,3 +78,12 @@ export const updateProfileDtoSchema = z.object({
 });
 
 export type UpdateProfileDto = z.infer<typeof updateProfileDtoSchema>;
+
+
+export const createUserSchema = z.object({
+  body: z.object({
+    username: z.string(),
+    email: z.string().email(),
+    password: z.string().min(6),
+  }),
+});

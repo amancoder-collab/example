@@ -10,7 +10,7 @@ import morgan from "morgan";
 import { logger } from "../logger/logger.service";
 import processHandler from "./process-handler";
 import authRoutes from "@/modules/auth/routes/auth.routes";
-import videoGameRoutes from "@/modules/video-games/routes/certification.router";
+
 class ExpressServer {
   private app: Application;
 
@@ -47,6 +47,10 @@ class ExpressServer {
   }
 
   private setupRoutes(): void {
+    this.app.get("/", (_req: Request, res: Response) => {
+      res.status(200).json({ status: "ok", message: "API is running" });
+    });
+    
     this.app.get("/health", (_req: Request, res: Response) => {
       res.status(200).json({ status: "ok" });
     });
@@ -55,7 +59,6 @@ class ExpressServer {
 
     // API routes
     this.app.use("/api/auth", authRoutes);
-    this.app.use("/api/video-games", videoGameRoutes);
   }
 
   private setupErrorHandling(): void {

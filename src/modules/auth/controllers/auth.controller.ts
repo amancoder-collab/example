@@ -4,11 +4,11 @@ import { LoginDto, RegisterDto, UpdateProfileDto } from "../dto/auth.dto";
 import authService from "../services/auth.service";
 
 class AuthController {
-  async login(req: Request, res: Response): Promise<void> {
+  async login(req: Request, res: Response) {
     const loginData: LoginDto = req.body;
     const result = await authService.login(loginData);
 
-    res.json(result);
+    return result;
   }
 
   async register(req: Request, res: Response): Promise<void> {
@@ -25,7 +25,7 @@ class AuthController {
     res.json(result);
   }
 
-  async updateProfile(req: Request, res: Response): Promise<void> {
+  async updateProfile(req: Request, res: Response) {
     const userId = req.user!.id;
     const updateData: UpdateProfileDto = req.body;
     const result = await authService.updateProfile(userId, updateData);

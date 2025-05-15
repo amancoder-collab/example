@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
 import { validate, ValidatorOptions } from "../validators/global.validator";
-import { createRouteDocumentation } from "./index";
 
 interface RouteConfig {
   path: string;
@@ -35,20 +34,7 @@ export function createRoute(router: Router, config: RouteConfig): void {
     controller,
   } = config;
 
-  // Generate Swagger documentation
-  const swaggerDocs = createRouteDocumentation({
-    path,
-    method,
-    schema,
-    schemaType:
-      validationOptions?.source === "all" ? "body" : validationOptions?.source,
-    summary,
-    description,
-    tags,
-    requiresAuth,
-    responses,
-  });
-
+  
   // Add the route with documentation
   const route = (router as any)[method].bind(router);
 
@@ -81,9 +67,6 @@ export function createRoute(router: Router, config: RouteConfig): void {
 
   // Add controller
   stack.push(controller);
-
-  // Apply Swagger documentation (as a comment in the code)
-  eval(swaggerDocs);
 
   // Register the route
   route(path, ...stack);
