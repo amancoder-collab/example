@@ -52,14 +52,16 @@ jobs:
         run: npm ci
 
       - name: Build Project
-        run: npm run build
+        run: |
+          npm run build
+          ls -la dist/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: dist
-          retention-days: 1
+          # retention-days: 1
 
 
   docker:
@@ -75,6 +77,14 @@ jobs:
         with:
           name: build
           path: dist
+
+      - name: Verify artifact download
+        run: |
+          ls -la dist/
+          if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then
+            echo "Error: dist directory is empty or missing"
+            exit 1
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
