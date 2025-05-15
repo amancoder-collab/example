@@ -54,7 +54,7 @@ jobs:
       - name: Build Project
         run: |
           npm run build
-          ls -la dist/
+          ls
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
