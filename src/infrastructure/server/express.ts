@@ -9,7 +9,6 @@ import { Server } from "http";
 import morgan from "morgan";
 import { logger } from "../logger/logger.service";
 import processHandler from "./process-handler";
-import authRoutes from "@/modules/auth/routes/auth.routes";
 
 class ExpressServer {
   private app: Application;
@@ -56,9 +55,6 @@ class ExpressServer {
     });
 
     swagger.setup(this.app);
-
-    // API routes
-    this.app.use("/api/auth", authRoutes);
   }
 
   private setupErrorHandling(): void {

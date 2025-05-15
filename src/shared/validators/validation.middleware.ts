@@ -31,7 +31,7 @@ export function validate(
         const extractErrors = (
           obj: Record<string, any>,
           parentPath: string = ""
-        ) => {
+        ) : void => {
           if (parentPath === "" && obj._errors) {
             return;
           }

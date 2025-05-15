@@ -1,13 +1,12 @@
-import { Request, Response, NextFunction } from "express";
-import { StatusCodes } from "http-status-codes";
 import { logger } from "@/infrastructure/logger/logger.service";
-import { ErrorWithStatus, AppError } from "./app.error";
+import { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import { AppError, ErrorWithStatus } from "./app.error";
 
 export const errorHandler = (
   err: AppError | Error,
   req: Request,
   res: Response,
-  next: NextFunction
 ): void => {
   const error = err as ErrorWithStatus;
   const statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;

@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build
-          path: dist # Adjust to your build output directory
+          path: dist
 
 
   docker:
