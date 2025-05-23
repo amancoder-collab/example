@@ -3,10 +3,10 @@ name: Node.js CI/CD with Docker
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 env:
   DOCKER_IMAGE: aman4790/cicd-test
