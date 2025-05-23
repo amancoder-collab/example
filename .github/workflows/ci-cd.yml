@@ -144,6 +144,5 @@ jobs:
 
       - name: Deploy to Local Machine via Serveo
         run: |
-          echo "Deploying to local machine via Serveo..."
-          ssh -i ~/.ssh/serveo_deploy_key ${{ secrets.PROD_SERVER }} \
+          ssh -i ~/.ssh/serveo_deploy_key -p 42041 serveo.net \
             "docker pull $DOCKER_IMAGE:${{ github.sha }} && docker-compose up -d"
