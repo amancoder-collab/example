@@ -145,10 +145,13 @@ jobs:
           chmod 600 ~/.ssh/serveo_deploy_key
           ssh-keyscan -p 42041 serveo.net >> ~/.ssh/known_hosts
 
+      - name: Copy docker-compose.yml to Server
+        run: |
+          scp -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes -P 42041 docker-compose.yml logicrays@serveo.net:/home/logicrays/docker-compose.yml
+
+
       - name: Deploy to Local Machine via Serveo
         run: |
-          echo "Deploying to local machine via Serveo..."
-          echo "Docker image: $DOCKER_IMAGE:${{ github.sha }}"
           ssh -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes -p 42041 logicrays@serveo.net \
-              "docker pull aman4790/cicd-test:8a40068df2e51d64efc7936026aaca536c0d48b5 && docker-compose up -d"
+              "cd /home/logicrays && docker pull aman4790/cicd-test:8a40068df2e51d64efc7936026aaca536c0d48b5 && docker-compose up -d"
             # "docker pull $DOCKER_IMAGE:${{ github.sha }} && docker-compose up -d"
