@@ -140,6 +140,9 @@ jobs:
     steps:
       - name: Set up SSH key
         run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/serveo_deploy_key
+          chmod 600 ~/.ssh/serveo_deploy_key
           ssh-keyscan -p 42041 serveo.net >> ~/.ssh/known_hosts
 
       - name: Deploy to Local Machine via Serveo
