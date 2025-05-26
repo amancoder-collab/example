@@ -2,9 +2,9 @@ name: CI/CD Pipeline (PM2 Zero Downtime Deployment)
 
 on:
   push:
-    branches: [master, staging]
+    branches: [main, staging]
   pull_request:
-    branches: [master, staging]
+    branches: [main, staging]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
