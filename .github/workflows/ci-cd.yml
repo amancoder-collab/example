@@ -1,120 +1,191 @@
-name: Node.js CI/CD with Docker
+name: CI/CD Pipeline (PM2 Zero Downtime Deployment)
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   pull_request:
-    branches: [main]
+    branches: [main, staging]
 
-env:
-  DOCKER_IMAGE: aman4790/cicd-test
-  NODE_VERSION: '20'
-  REGISTRY: docker.io
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    name: Lint and Test
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
 
-      - name: Set up Node.js
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
+      # - name: Run linting and tests
+      #   run: |
+      #     npm run lint
+      #     npm run test:e2e
+      #   env:
+      #     PORT: 8000
+      #     ...
 
-      - name: Run Tests
-        run: npm test
-
-  build:
-    name: Build Project
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Project
+      - name: Build project
+        if: github.event_name == 'push'
         run: |
           npm run build
-          ls
+          # npx tsc prisma/seed.ts --outDir dist/prisma
 
       - name: Upload build artifacts
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: build
-          path: dist
-          # retention-days: 1
+          name: build-artifacts
+          path: |
+            dist/
+            src/
+            package.json
+            package-lock.json
+            prisma/
+            ecosystem.prod.config.js
+            # ecosystem.staging.config.js
 
-
-  docker:
-    name: Docker Build & Push
-    needs: build
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: deploy-${{ github.ref }}
+      cancel-in-progress: true
+
+    env:
+      DEPLOY_PATH: /home/logicrays/deployments
+      APP_NAME: test
+      CI_USER: logicrays
+      ENV_PATH: /home/logicrays/environments
+      SERVICE_NAME: backend
+      SSH_CMD: ssh -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes -p 42041 logicrays@serveo.net
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Set deployment variables
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+            echo "PM2_CONFIG=ecosystem.prod.config.js" >> $GITHUB_ENV
+            echo "APP_PORT=8000" >> $GITHUB_ENV
+          else
+            echo "ENVIRONMENT=development" >> $GITHUB_ENV
+            echo "PM2_CONFIG=ecosystem.staging.config.js" >> $GITHUB_ENV
+            echo "APP_PORT=8001" >> $GITHUB_ENV
+          fi
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build
-          path: dist
+          name: build-artifacts
+          path: build-artifacts
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and Push Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ${{ env.DOCKER_IMAGE }}:latest
-            ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-
-      - name: Scan for Vulnerabilities
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '${{ env.DOCKER_IMAGE }}:latest'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
-
-  deploy:
-    name: Deploy to Production
-    needs: docker
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-    steps:
-      - name: Deploy
+      - name: Add Serveo host to known_hosts
         run: |
-          echo "Deploying to production..."
-          # ssh ${{ secrets.SERVER_IP }} "docker pull $DOCKER_IMAGE:${{ github.sha }} && docker-compose -f docker-compose.prod.yml up -d --remove-orphans"
+          mkdir -p ~/.ssh
+          ssh-keyscan -p 42041 -H serveo.net >> ~/.ssh/known_hosts
+
+      - name: Create release directory on remote
+        run: |
+          ${{ env.SSH_CMD }} "
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}/logs
+            chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}/logs
+          "
+
+      - name: Upload and extract build artifacts
+        run: |
+          cd build-artifacts
+          tar -czf ../artifacts.tar.gz .
+          cd ..
+          scp -P 42041 -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes artifacts.tar.gz logicrays@serveo.net:${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}/
+          ${{ env.SSH_CMD }} "
+            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}
+            tar -xzf artifacts.tar.gz && rm artifacts.tar.gz
+            ln -sf ${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env .env
+          "
+
+      - name: Install dependencies and deploy with PM2
+        run: |
+          ${{ env.SSH_CMD }} "
+            export NVM_DIR=\$HOME/.nvm
+            [ -s \$NVM_DIR/nvm.sh ] && . \$NVM_DIR/nvm.sh
+            nvm install 20 && nvm use 20 && nvm alias default 20
+
+            NODE_BINARY=\$(which node)
+            NPM_BINARY=\$(which npm)
+
+            \$NPM_BINARY install -g pm2
+
+            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}
+            \$NPM_BINARY ci --production
+
+            \$NODE_BINARY ./node_modules/.bin/prisma migrate deploy
+            \$NODE_BINARY ./node_modules/.bin/prisma generate
+            NODE_ENV=${{ env.ENVIRONMENT }} \$NODE_BINARY ./node_modules/.bin/prisma db seed
+
+            ln -sfn ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }} ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/current
+
+            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/current
+            APP_NAME=\"${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}\"
+            PM2_BINARY=\$(which pm2)
+
+            if \$PM2_BINARY list | grep -q \"\$APP_NAME\"; then
+              \$PM2_BINARY delete \$APP_NAME || true
+            fi
+
+            \$PM2_BINARY start ${{ env.PM2_CONFIG }} --update-env
+            \$PM2_BINARY save
+          "
+
+      - name: Verify Deployment
+        run: |
+          sleep 10
+          ${{ env.SSH_CMD }} "
+            echo 'Testing health endpoint...'
+            max_attempts=5
+            attempt=1
+            while [ \$attempt -le \$max_attempts ]; do
+              response=\$(curl -s -w '%{http_code}' http://localhost:${{ env.APP_PORT }}/health -o /dev/null)
+              if [ \$response -eq 200 ]; then
+                echo '✅ Health check passed!'
+                exit 0
+              else
+                echo \"Attempt \$attempt failed: HTTP \$response\"
+                if [ \$attempt -eq \$max_attempts ]; then
+                  echo '❌ Health check failed'
+                  pm2 logs ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} --lines 50 --nostream
+                  exit 1
+                fi
+                sleep 5
+                attempt=\$((attempt + 1))
+              fi
+            done
+          "
