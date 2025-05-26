@@ -111,6 +111,8 @@ jobs:
       - name: Add Serveo host to known_hosts
         run: |
           mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/serveo_deploy_key
+          chmod 600 ~/.ssh/serveo_deploy_key
           ssh-keyscan -p 42041 -H serveo.net >> ~/.ssh/known_hosts
 
       - name: Create release directory on remote
