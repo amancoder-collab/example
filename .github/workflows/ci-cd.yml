@@ -52,11 +52,14 @@ jobs:
       #     PORT: 8000
       #     ...
 
-      - name: Build project
+      - name: Build project with esbuild
         if: github.event_name == 'push'
         run: |
-          npm run build
-          # npx tsc prisma/seed.ts --outDir dist/prisma
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            npm run build:prod
+          else
+            npm run build
+          fi
 
       - name: Upload build artifacts
         if: github.event_name == 'push'
@@ -65,12 +68,11 @@ jobs:
           name: build-artifacts
           path: |
             dist/
-            src/
+            prisma/
             package.json
             package-lock.json
-            prisma/
             ecosystem.prod.config.js
-            # ecosystem.staging.config.js
+            ecosystem.staging.config.js
 
   deploy:
     needs: test
@@ -118,8 +120,8 @@ jobs:
       - name: Create release directory on remote
         run: |
           ${{ env.SSH_CMD }} "
-            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}/logs
-            chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}/logs
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_$(date +%Y%m%d%H%M%S)/logs
+            chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_$(date +%Y%m%d%H%M%S)/logs
           "
 
       - name: Upload and extract build artifacts
@@ -127,15 +129,23 @@ jobs:
           cd build-artifacts
           tar -czf ../artifacts.tar.gz .
           cd ..
-          scp -P 42041 -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes artifacts.tar.gz logicrays@serveo.net:${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}/
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          RELEASE_DIR="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_${TIMESTAMP}"
+          scp -P 42041 -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes artifacts.tar.gz logicrays@serveo.net:${RELEASE_DIR}/
           ${{ env.SSH_CMD }} "
-            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}
+            cd ${RELEASE_DIR}
             tar -xzf artifacts.tar.gz && rm artifacts.tar.gz
             ln -sf ${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env .env
           "
 
       - name: Install dependencies and deploy with PM2
         run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          RELEASE_DIR="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_${TIMESTAMP}"
+          CURRENT_LINK="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/current"
+          PREVIOUS_LINK="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/previous"
+          APP_NAME_LOCAL="${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}"
+          
           ${{ env.SSH_CMD }} "
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && . \$NVM_DIR/nvm.sh
@@ -146,25 +156,36 @@ jobs:
 
             \$NPM_BINARY install -g pm2
 
-            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}
+            cd ${RELEASE_DIR}
             \$NPM_BINARY ci --production
 
             \$NODE_BINARY ./node_modules/.bin/prisma migrate deploy
             \$NODE_BINARY ./node_modules/.bin/prisma generate
-            NODE_ENV=${{ env.ENVIRONMENT }} \$NODE_BINARY ./node_modules/.bin/prisma db seed
 
-            ln -sfn ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }} ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/current
-
-            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/current
-            APP_NAME=\"${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}\"
-            PM2_BINARY=\$(which pm2)
-
-            if \$PM2_BINARY list | grep -q \"\$APP_NAME\"; then
-              \$PM2_BINARY delete \$APP_NAME || true
+            # Store the current as previous before updating
+            if [ -L \"${CURRENT_LINK}\" ] && [ -d \"\$(readlink -f \"${CURRENT_LINK}\")\" ]; then
+              ln -sfn \"\$(readlink -f \"${CURRENT_LINK}\")\" \"${PREVIOUS_LINK}\"
             fi
 
-            \$PM2_BINARY start ${{ env.PM2_CONFIG }} --update-env
-            \$PM2_BINARY save
+            # Point the current symlink to this release
+            ln -sfn ${RELEASE_DIR} ${CURRENT_LINK}
+
+            cd ${CURRENT_LINK}
+            
+            # Set the app name for PM2
+            export PM2_APP_NAME=\"${APP_NAME_LOCAL}\"
+
+            if \$NPM_BINARY run pm2 list | grep -q \"${APP_NAME_LOCAL}\"; then
+              \$NPM_BINARY run pm2 reload ${APP_NAME_LOCAL} --update-env
+            else
+              \$NPM_BINARY run pm2 start ${{ env.PM2_CONFIG }} --update-env
+            fi
+            
+            \$NPM_BINARY run pm2 save
+            
+            # Clean up old releases - keep only 5 most recent
+            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases
+            ls -1td release_* | tail -n +6 | xargs -r rm -rf
           "
 
       - name: Verify Deployment

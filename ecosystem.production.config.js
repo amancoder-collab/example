@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'test-production',
+      name: process.env.PM2_APP_NAME || 'test-production',
       script: 'dist/main.js',
 
       // Use all available CPUs for zero downtime reloads (or set a specific number)
@@ -21,13 +21,14 @@ module.exports = {
       merge_logs: true,
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
 
-      // Health check / readiness - use your app's endpoint if needed
+      // Health check / readiness
       exp_backoff_restart_delay: 100,
 
       // Environment variables
       env: {
         NODE_ENV: 'production',
+        PORT: 8000,
       },
     },
   ],
-};
+}; 

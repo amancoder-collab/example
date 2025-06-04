@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'test-production',
+      name: process.env.PM2_APP_NAME || 'test-development',
       script: 'dist/main.js',
 
       // Use all available CPUs for zero downtime reloads (or set a specific number)
@@ -26,7 +26,7 @@ module.exports = {
 
       // Environment variables
       env: {
-        NODE_ENV: 'production',
+        NODE_ENV: 'development',
       },
     },
   ],
