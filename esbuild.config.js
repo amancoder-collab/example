@@ -23,6 +23,10 @@ async function runBuild() {
         js: '#!/usr/bin/env node',
       },
       logLevel: 'info',
+      legalComments: 'inline',
+      minifyWhitespace: true,
+      minifyIdentifiers: false,
+      minifySyntax: true,
     });
     console.log('⚡ Build complete!');
   } catch (error) {

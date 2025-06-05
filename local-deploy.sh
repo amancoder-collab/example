@@ -71,6 +71,12 @@ fi
 log "⚙️ Copying build artifacts..."
 rsync -av --exclude="node_modules" --exclude=".git" dist/ "${RELEASE_DIR}/" || error_exit "Failed to copy artifacts"
 
+# Copy swagger.json if it exists
+if [ -f "swagger.json" ]; then
+  log "⚙️ Copying Swagger documentation..."
+  cp swagger.json "${RELEASE_DIR}/"
+fi
+
 # Also copy the package.json from dist
 if [ -f "dist/package.json" ]; then
   cp dist/package.json "${RELEASE_DIR}/"

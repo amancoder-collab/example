@@ -3,6 +3,7 @@ import security from "@/infrastructure/security/security.service";
 import swagger from "@/infrastructure/swagger/swagger";
 import { errorHandler } from "@/shared/exceptions/error.middleware";
 import { responseFormatter } from "@/shared/middleware/response.middleware";
+import gameRoutes from "@/modules/games/routes/game.routes";
 import compression from "compression";
 import express, { Application, Request, Response } from "express";
 import { Server } from "http";
@@ -53,6 +54,9 @@ class ExpressServer {
     this.app.get("/health", (_req: Request, res: Response) => {
       res.status(200).json({ status: "ok" });
     });
+
+    // API Routes
+    this.app.use("/api/games", gameRoutes);
 
     swagger.setup(this.app);
   }

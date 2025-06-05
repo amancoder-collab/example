@@ -29,6 +29,10 @@ try {
   console.log('⚙️ Running esbuild...');
   execSync(buildCmd, { stdio: 'inherit' });
   
+  // Generate Swagger documentation
+  console.log('📚 Generating Swagger documentation...');
+  execSync('npx ts-node -r tsconfig-paths/register src/infrastructure/swagger/swagger-generator.ts', { stdio: 'inherit' });
+  
   // Copy necessary files (like prisma schema)
   console.log('📋 Copying additional files...');
   if (fs.existsSync('prisma')) {
@@ -40,6 +44,11 @@ try {
     if (fs.existsSync('prisma/schema.prisma')) {
       fs.copyFileSync('prisma/schema.prisma', path.join(prismaDir, 'schema.prisma'));
     }
+  }
+  
+  // Copy swagger.json to dist
+  if (fs.existsSync('swagger.json')) {
+    fs.copyFileSync('swagger.json', path.join(distDir, 'swagger.json'));
   }
   
   // Copy package.json and update it for production

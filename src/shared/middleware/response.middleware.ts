@@ -39,6 +39,17 @@ export function responseFormatter() {
       );
     };
 
+    // Add success method to response object
+    res.success = function<T>(data: T): Response {
+      return res.json({
+        success: true,
+        message: "",
+        error: "",
+        data,
+        meta: {},
+      });
+    };
+
     res.json = function (body: any): Response {
       // Don't modify responses that are already in our format
       if (

@@ -1,13 +1,14 @@
 {
 	"name": "game-cert-lookup",
 	"version": "1.0.0",
-	"description": "Video game certification lookup API for CGC and WATA grading services",
-	"main": "dist/main.js",
+	"description": "Swagger API for CGC and WATA grading services",
+	"main": "dist/index.js",
 	"scripts": {
-		"start": "node dist/main.js",
+		"start": "node dist/index.js",
 		"dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/index.ts",
 		"build": "node build.js",
 		"build:prod": "node build.js --prod",
+		"swagger:generate": "node generate-swagger.js",
 		"lint": "eslint . --ext .ts",
 		"test": "jest",
 		"type-check": "tsc --noEmit",
@@ -19,7 +20,6 @@
 	"keywords": [
 		"cgc",
 		"wata",
-		"video games",
 		"grading",
 		"certification"
 	],

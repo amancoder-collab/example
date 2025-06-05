@@ -1,0 +1,275 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Swagger API",
+    "version": "1.0.0",
+    "description": "API documentation for the Swagger lookup"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Game": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "platform",
+          "releaseYear"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The auto-generated id of the game"
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the game"
+          },
+          "platform": {
+            "type": "string",
+            "description": "The gaming platform (e.g., NES, SNES, PlayStation)"
+          },
+          "releaseYear": {
+            "type": "integer",
+            "description": "Year the game was released"
+          },
+          "publisher": {
+            "type": "string",
+            "description": "The publisher of the game"
+          },
+          "developer": {
+            "type": "string",
+            "description": "The developer of the game"
+          },
+          "condition": {
+            "type": "string",
+            "description": "Condition of the game (e.g., sealed, loose)"
+          },
+          "certificationNumber": {
+            "type": "string",
+            "description": "Certification number from grading service"
+          },
+          "gradingService": {
+            "type": "string",
+            "enum": [
+              "CGC",
+              "WATA"
+            ],
+            "description": "The grading service that certified the game"
+          },
+          "grade": {
+            "type": "string",
+            "description": "The grade assigned to the game (e.g., 9.8 A++, 85+)"
+          }
+        },
+        "example": {
+          "id": "60d21b4667d0d8992e610c85",
+          "title": "Super Mario Bros.",
+          "platform": "NES",
+          "releaseYear": 1985,
+          "publisher": "Nintendo",
+          "developer": "Nintendo",
+          "condition": "Sealed",
+          "certificationNumber": "CGC123456",
+          "gradingService": "CGC",
+          "grade": "9.8 A++"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/games": {
+      "get": {
+        "summary": "Get all games",
+        "tags": [
+          "Games"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all games",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Game"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/games/{id}": {
+      "get": {
+        "summary": "Get a game by ID",
+        "tags": [
+          "Games"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "ID of the game to get"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Game details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Game"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Game not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/games/search": {
+      "get": {
+        "summary": "Search games by query",
+        "tags": [
+          "Games"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Search query for title, platform, or certification number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of matching games",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Game"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/games/grading/{service}": {
+      "get": {
+        "summary": "Get games by grading service",
+        "tags": [
+          "Games"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CGC",
+                "WATA"
+              ]
+            },
+            "required": true,
+            "description": "Grading service (CGC or WATA)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of games graded by the specified service",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Game"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid grading service"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
