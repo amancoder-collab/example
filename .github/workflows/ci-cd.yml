@@ -2,20 +2,28 @@ name: CI/CD Pipeline (PM2 Zero Downtime Deployment)
 
 on:
   push:
-    branches: [main, staging]
+    branches: [production, staging, main]
   pull_request:
-    branches: [main, staging]
+    branches: [production, staging, main]
 
+# Make concurrency more specific and ensure it's at the top level
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     concurrency:
       group: test-${{ github.ref }}
       cancel-in-progress: true
+
+    env:
+      TEST_DB_USER: postgres
+      TEST_DB_PASSWORD: postgres
+      TEST_DB_PORT: 5432
+      CLEAN_TEST_DB: test_db_clean
+      SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
 
     services:
       postgres:
@@ -23,7 +31,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
@@ -44,18 +52,89 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run linting and tests
-      #   run: |
-      #     npm run lint
-      #     npm run test:e2e
-      #   env:
-      #     PORT: 8000
-      #     ...
+      - name: Set environment variables
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+            echo "APP_PORT=5000" >> $GITHUB_ENV
+          elif [[ ${{ github.ref }} == 'refs/heads/staging' ]]; then
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+            echo "APP_PORT=5001" >> $GITHUB_ENV
+          else
+            echo "ENVIRONMENT=development" >> $GITHUB_ENV
+            echo "APP_PORT=5001" >> $GITHUB_ENV
+          fi
 
-      - name: Build project with esbuild
+      - name: Phase 1 - Clean Database Tests
+        run: |
+          echo "Running tests against clean database..."
+
+          # Create clean test database
+          # PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.CLEAN_TEST_DB }};"
+
+          # Run migrations on clean database
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npx prisma migrate deploy
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npx prisma generate
+
+          # Run tests against clean database
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npm run test:e2e
+
+          echo "Clean database tests passed!"
+
+      - name: Phase 2 - Setup Production-like Database
+        run: |
+          # Check if snapshot exists
+          if PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -lqt | cut -d \| -f 1 | grep -qw ${{ env.SNAPSHOT_DB }}; then
+            echo "Using existing snapshot database..."
+          else
+            echo "Creating new snapshot database..."
+            
+            # Get environment-specific database URL from .env file
+            ENV_DB_URL=$(grep DATABASE_URL .env | cut -d '=' -f2- | tr -d '"')
+            
+            # Create a new database for snapshot
+            PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.SNAPSHOT_DB }};"
+            
+            # Use pg_dump to copy schema and data
+            pg_dump "$ENV_DB_URL" | PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d ${{ env.SNAPSHOT_DB }}
+            
+            echo "Snapshot database created successfully!"
+          fi
+
+      - name: Phase 2 - Production-like Tests
+        run: |
+          echo "Running tests against production-like database..."
+
+          # Run migrations on snapshot database
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.SNAPSHOT_DB }}" npx prisma migrate deploy
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.SNAPSHOT_DB }}" npx prisma generate
+
+          # Run tests against snapshot database
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.SNAPSHOT_DB }}" npm run test:e2e
+
+          echo "Production-like database tests passed!"
+        env:
+          NODE_ENV: test
+          PORT: ${{ env.APP_PORT }}
+          HOST: localhost
+          JWT_ACCESS_TOKEN_SECRET: test_jwt_secret
+          JWT_REFRESH_TOKEN_SECRET: test_refresh_secret
+          JWT_RESET_TOKEN_SECRET: test_reset_secret
+          JWT_ACCESS_TOKEN_EXPIRES_IN: 1h
+          JWT_REFRESH_TOKEN_EXPIRES_IN: 1d
+          JWT_RESET_TOKEN_EXPIRES_IN: 1h
+          RATE_LIMIT_WINDOW_MS: 900000
+          RATE_LIMIT_MAX: 100
+          EMAIL_HOST: smtp.gmail.com
+          EMAIL_PORT: 587
+          EMAIL_USER: test@example.com
+          EMAIL_PASS: test_password
+          LOG_LEVEL: info
+
+      - name: Build project
         if: github.event_name == 'push'
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
             npm run build:prod
           else
             npm run build
@@ -68,147 +147,203 @@ jobs:
           name: build-artifacts
           path: |
             dist/
-            prisma/
             package.json
             package-lock.json
+            prisma/
+            swagger-spec.json
             ecosystem.prod.config.js
             ecosystem.staging.config.js
 
+  # --- STAGE 2: DEPLOY with PM2 Zero Downtime ---
   deploy:
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
-    runs-on: ubuntu-latest
-
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main')
+    runs-on: self-hosted
     concurrency:
       group: deploy-${{ github.ref }}
       cancel-in-progress: true
 
     env:
-      DEPLOY_PATH: /home/logicrays/deployments
-      APP_NAME: test
-      CI_USER: logicrays
-      ENV_PATH: /home/logicrays/environments
+      DEPLOY_PATH: /home/test-cicd/deployments
       SERVICE_NAME: backend
-      SSH_CMD: ssh -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes -p 42041 logicrays@serveo.net
+      ENV_PATH: /home/test-cicd/environments
 
     steps:
       - name: Set deployment variables
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "PM2_CONFIG=ecosystem.prod.config.js" >> $GITHUB_ENV
-            echo "APP_PORT=8000" >> $GITHUB_ENV
+            echo "APP_PORT=5000" >> $GITHUB_ENV
           else
             echo "ENVIRONMENT=development" >> $GITHUB_ENV
             echo "PM2_CONFIG=ecosystem.staging.config.js" >> $GITHUB_ENV
-            echo "APP_PORT=8001" >> $GITHUB_ENV
+            echo "APP_PORT=5001" >> $GITHUB_ENV
           fi
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: build-artifacts
-
-      - name: Add Serveo host to known_hosts
+      - name: Setup deployment directory
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/serveo_deploy_key
-          chmod 600 ~/.ssh/serveo_deploy_key
-          ssh-keyscan -p 42041 -H serveo.net >> ~/.ssh/known_hosts
+          # Create deployment directories
+          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
+          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
+          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
 
-      - name: Create release directory on remote
-        run: |
-          ${{ env.SSH_CMD }} "
-            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_$(date +%Y%m%d%H%M%S)/logs
-            chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_$(date +%Y%m%d%H%M%S)/logs
-          "
+          # Check if environment file exists
+          ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
+          if [ ! -f "$ENV_FILE_PATH" ]; then
+            echo "Environment file not found at $ENV_FILE_PATH"
+            echo "Please ensure the environment file exists at the correct location."
+            exit 1
+          fi
 
-      - name: Upload and extract build artifacts
+      - name: Create release directory
+        env:
+          RELEASE_ID: release_${{ github.sha }}
         run: |
-          cd build-artifacts
-          tar -czf ../artifacts.tar.gz .
-          cd ..
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          RELEASE_DIR="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_${TIMESTAMP}"
-          scp -P 42041 -i ~/.ssh/serveo_deploy_key -o IdentitiesOnly=yes artifacts.tar.gz logicrays@serveo.net:${RELEASE_DIR}/
-          ${{ env.SSH_CMD }} "
-            cd ${RELEASE_DIR}
-            tar -xzf artifacts.tar.gz && rm artifacts.tar.gz
-            ln -sf ${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env .env
-          "
+          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
+          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
+          chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
 
-      - name: Install dependencies and deploy with PM2
+      - name: Copy build artifacts and link environment file
+        env:
+          RELEASE_ID: release_${{ github.sha }}
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          RELEASE_DIR="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases/release_${{ github.sha }}_${TIMESTAMP}"
-          CURRENT_LINK="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/current"
-          PREVIOUS_LINK="${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/previous"
-          APP_NAME_LOCAL="${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}"
+          RELEASE_DIR=${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
           
-          ${{ env.SSH_CMD }} "
-            export NVM_DIR=\$HOME/.nvm
-            [ -s \$NVM_DIR/nvm.sh ] && . \$NVM_DIR/nvm.sh
-            nvm install 20 && nvm use 20 && nvm alias default 20
+          # Copy project files to release directory
+          cp -r ./* $RELEASE_DIR/
+          
+          # Create symbolic link to environment file
+          ln -sf ${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env $RELEASE_DIR/.env
 
-            NODE_BINARY=\$(which node)
-            NPM_BINARY=\$(which npm)
+      - name: Install dependencies & Deploy with PM2
+        env:
+          RELEASE_ID: release_${{ github.sha }}
+        run: |
+          # Clean up any existing npm config
+          rm -f ~/.npmrc
+          
+          # Navigate to the release directory
+          cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
 
-            \$NPM_BINARY install -g pm2
+          # Install production dependencies
+          npm ci --production
 
-            cd ${RELEASE_DIR}
-            \$NPM_BINARY ci --production
+          # Run Prisma commands
+          npx prisma migrate deploy
+          npx prisma generate
 
-            \$NODE_BINARY ./node_modules/.bin/prisma migrate deploy
-            \$NODE_BINARY ./node_modules/.bin/prisma generate
+          # Create logs directory
+          mkdir -p logs
 
-            # Store the current as previous before updating
-            if [ -L \"${CURRENT_LINK}\" ] && [ -d \"\$(readlink -f \"${CURRENT_LINK}\")\" ]; then
-              ln -sfn \"\$(readlink -f \"${CURRENT_LINK}\")\" \"${PREVIOUS_LINK}\"
-            fi
+          # Create/update symbolic link to current release
+          echo "Updating current symlink..."
+          ln -sfn ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/current
 
-            # Point the current symlink to this release
-            ln -sfn ${RELEASE_DIR} ${CURRENT_LINK}
+          # PM2 Deployment
+          APP_NAME="${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}"
+          cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/current
+          
+          echo "APP_NAME: $APP_NAME"
 
-            cd ${CURRENT_LINK}
-            
-            # Set the app name for PM2
-            export PM2_APP_NAME=\"${APP_NAME_LOCAL}\"
+          # Check if PM2 is installed, if not install it
+          if ! command -v pm2 &> /dev/null; then
+            echo "Installing PM2 globally..."
+            npm install -g pm2
+          fi
 
-            if \$NPM_BINARY run pm2 list | grep -q \"${APP_NAME_LOCAL}\"; then
-              \$NPM_BINARY run pm2 reload ${APP_NAME_LOCAL} --update-env
-            else
-              \$NPM_BINARY run pm2 start ${{ env.PM2_CONFIG }} --update-env
-            fi
-            
-            \$NPM_BINARY run pm2 save
-            
-            # Clean up old releases - keep only 5 most recent
-            cd ${{ env.DEPLOY_PATH }}/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/releases
-            ls -1td release_* | tail -n +6 | xargs -r rm -rf
-          "
+          # Check if the app exists in PM2
+          if pm2 list | grep -q "$APP_NAME"; then
+            echo "Performing zero-downtime reload..."
+            SERVICE_NAME=${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} pm2 reload $APP_NAME --update-env || {
+              echo "Reload failed, falling back to restart..."
+              SERVICE_NAME=${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} pm2 restart $APP_NAME --update-env
+            }
+          else
+            echo "Starting new PM2 process..."
+            SERVICE_NAME=${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} pm2 start ${{ env.PM2_CONFIG }} --update-env || {
+              echo "Failed to start PM2 process"
+              exit 1
+            }
+          fi
+          
+          # Save PM2 configuration
+          pm2 save
+
+          # Wait for all instances to be ready
+          echo "Waiting for all instances to be ready..."
+          sleep 5
+          
+          # Verify all instances are running
+          EXPECTED_INSTANCES=$(pm2 prettylist | grep -c "online")
+          RUNNING_INSTANCES=$(pm2 prettylist | grep -c "online")
+          
+          if [ "$RUNNING_INSTANCES" -lt "$EXPECTED_INSTANCES" ]; then
+            echo "❌ Not all instances are running. Expected: $EXPECTED_INSTANCES, Running: $RUNNING_INSTANCES"
+            pm2 logs $APP_NAME --lines 50 --nostream
+            exit 1
+          fi
+          
+          echo "✅ All $RUNNING_INSTANCES instances are running"
 
       - name: Verify Deployment
         run: |
-          sleep 10
-          ${{ env.SSH_CMD }} "
-            echo 'Testing health endpoint...'
-            max_attempts=5
-            attempt=1
-            while [ \$attempt -le \$max_attempts ]; do
-              response=\$(curl -s -w '%{http_code}' http://localhost:${{ env.APP_PORT }}/health -o /dev/null)
-              if [ \$response -eq 200 ]; then
-                echo '✅ Health check passed!'
-                exit 0
-              else
-                echo \"Attempt \$attempt failed: HTTP \$response\"
-                if [ \$attempt -eq \$max_attempts ]; then
-                  echo '❌ Health check failed'
-                  pm2 logs ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} --lines 50 --nostream
-                  exit 1
-                fi
-                sleep 5
-                attempt=\$((attempt + 1))
+          # Allow time for all instances to initialize
+          sleep 15
+          
+          echo 'Testing health endpoint...'
+          
+          # Try health check multiple times
+          max_attempts=5
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            APP_NAME="${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}"
+            response=$(curl -s -w '%{http_code}' http://localhost:${{ env.APP_PORT }}/health -o /dev/null)
+            
+            if [ $response -eq 200 ]; then
+              echo '✅ Health check passed!'
+              
+              # Verify all instances are running
+              RUNNING_INSTANCES=$(pm2 prettylist | grep -c "online")
+              echo "Number of running instances: $RUNNING_INSTANCES"
+              exit 0
+            else
+              echo "Attempt $attempt: Health check failed with status $response"
+              if [ $attempt -eq $max_attempts ]; then
+                echo "❌ Health check failed after $max_attempts attempts"
+                pm2 logs ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} --lines 50 --nostream
+                exit 1
               fi
-            done
-          "
+              echo 'Waiting 5 seconds before next attempt...'
+              sleep 5
+              attempt=$((attempt + 1))
+            fi
+          done
+
+  # Cleanup job remains commented out as before
+  # cleanup:
+  #   if: always()
+  #   needs: [test, deploy]
+  #   runs-on: self-hosted
+  #   steps:
+  #     - name: Check workflow status
+  #       if: contains(needs.*.result, 'cancelled')
+  #       run: |
+  #         echo "Workflow was cancelled, performing cleanup..."
+  #         
+  #         # Get the current deployment directory
+  #         DEPLOY_DIR=${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
+  #
+  #         # If there's an incomplete deployment, remove it
+  #         if [ -d $DEPLOY_DIR/releases/release_${{ github.sha }} ]; then
+  #           echo 'Removing incomplete deployment...'
+  #           rm -rf $DEPLOY_DIR/releases/release_${{ github.sha }}
+  #         fi
+  #
+  #         # Ensure PM2 process is in a good state
+  #         pm2 describe ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} > /dev/null
+  #         if [ $? -eq 0 ]; then
+  #           echo 'Restarting PM2 process...'
+  #           pm2 restart ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
+  #         fi
