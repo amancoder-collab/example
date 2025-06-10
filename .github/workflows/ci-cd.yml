@@ -366,7 +366,7 @@ jobs:
             • Triggered by: ${{ github.actor }}\n
             • Commit: ${{ github.event.head_commit.message }}\n
             • Repository: ${{ github.repository }}\n
-            • Duration: ${{ format(''%d minutes'', fromJSON((github.run_number - github.run_number + 1) * 0 + ((new Date()).getTime() - new Date(github.event.head_commit.timestamp).getTime()) / 60000)) }}"
+            • Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           }' ${{ env.GOOGLE_CHAT_WEBHOOK }}
 
       - name: Send Failure Notification
@@ -382,7 +382,6 @@ jobs:
           • Triggered by: ${{ github.actor }}\n
           • Commit: ${{ github.event.head_commit.message }}\n
           • Repository: ${{ github.repository }}\n
-          • Duration: ${{ format(''%d minutes'', fromJSON((github.run_number - github.run_number + 1) * 0 + ((new Date()).getTime() - new Date(github.event.head_commit.timestamp).getTime()) / 60000)) }}\n\n
           *Error Details:*\n
           ${TEST_LOGS}\n
           ${DEPLOY_LOGS}\n\n
