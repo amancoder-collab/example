@@ -12,7 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GOOGLE_CHAT_WEBHOOK: "https://chat.googleapis.com/v1/spaces/AAQAvVbDD44/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=X6V_BJ70wQtPL4gnyZ8I67Dvf2KQ--l-Rwbyss0nn30"
+  GOOGLE_CHAT_SPACE: "AAQAvVbDD44"
+  GOOGLE_CHAT_KEY: "AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI"
+  GOOGLE_CHAT_TOKEN: "X6V_BJ70wQtPL4gnyZ8I67Dvf2KQ--l-Rwbyss0nn30"
 
 jobs:
   notify-start:
@@ -20,10 +22,17 @@ jobs:
     steps:
       - name: Send Start Notification
         run: |
+          # Construct webhook URL with proper encoding
+          WEBHOOK_URL="https://chat.googleapis.com/v1/spaces/${GOOGLE_CHAT_SPACE}/messages?key=${GOOGLE_CHAT_KEY}&token=${GOOGLE_CHAT_TOKEN}"
+          
+          # Prepare message
           MESSAGE="🚀 *CI/CD Pipeline Started*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}"
-          curl -X POST -H 'Content-Type: application/json' -d "{
-            \"text\": \"$MESSAGE\"
-          }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
+          
+          # Send message using curl with URL in quotes
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"$MESSAGE\"}" \
+            "$WEBHOOK_URL"
 
   test:
     needs: notify-start
@@ -357,14 +366,24 @@ jobs:
       - name: Send Success Notification
         if: steps.check.outputs.status == 'success'
         run: |
+          # Construct webhook URL with proper encoding
+          WEBHOOK_URL="https://chat.googleapis.com/v1/spaces/${GOOGLE_CHAT_SPACE}/messages?key=${GOOGLE_CHAT_KEY}&token=${GOOGLE_CHAT_TOKEN}"
+          
+          # Prepare message
           MESSAGE="✅ *CI/CD Pipeline Completed Successfully*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}\n• Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          curl -X POST -H 'Content-Type: application/json' -d "{
-            \"text\": \"$MESSAGE\"
-          }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
+          
+          # Send message using curl with URL in quotes
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"$MESSAGE\"}" \
+            "$WEBHOOK_URL"
 
       - name: Send Failure Notification
         if: steps.check.outputs.status == 'failure'
         run: |
+          # Construct webhook URL with proper encoding
+          WEBHOOK_URL="https://chat.googleapis.com/v1/spaces/${GOOGLE_CHAT_SPACE}/messages?key=${GOOGLE_CHAT_KEY}&token=${GOOGLE_CHAT_TOKEN}"
+          
           # Collect job logs
           TEST_LOGS="${{ needs.test.result != 'success' && 'Test job failed.' || '' }}"
           DEPLOY_LOGS="${{ needs.deploy.result != 'success' && needs.deploy.result != 'skipped' && 'Deploy job failed.' || '' }}"
@@ -372,10 +391,11 @@ jobs:
           # Format error message
           MESSAGE="❌ *CI/CD Pipeline Failed*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}\n\n*Error Details:*\n${TEST_LOGS}\n${DEPLOY_LOGS}\n\n🔍 View full logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           
-          # Send to Google Chat
-          curl -X POST -H 'Content-Type: application/json' -d "{
-            \"text\": \"$MESSAGE\"
-          }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
+          # Send message using curl with URL in quotes
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"$MESSAGE\"}" \
+            "$WEBHOOK_URL"
 
   # Cleanup job remains commented out as before
   # cleanup:
