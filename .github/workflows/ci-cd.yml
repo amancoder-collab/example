@@ -20,13 +20,10 @@ jobs:
     steps:
       - name: Send Start Notification
         run: |
-          curl -X POST -H 'Content-Type: application/json' -d '{
-            "text": "🚀 *CI/CD Pipeline Started*\n
-            • Branch: `${{ github.ref_name }}`\n
-            • Triggered by: ${{ github.actor }}\n
-            • Commit: ${{ github.event.head_commit.message }}\n
-            • Repository: ${{ github.repository }}"
-          }' ${{ env.GOOGLE_CHAT_WEBHOOK }}
+          MESSAGE="🚀 *CI/CD Pipeline Started*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}"
+          curl -X POST -H 'Content-Type: application/json' -d "{
+            \"text\": \"$MESSAGE\"
+          }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
 
   test:
     needs: notify-start
@@ -360,14 +357,10 @@ jobs:
       - name: Send Success Notification
         if: steps.check.outputs.status == 'success'
         run: |
-          curl -X POST -H 'Content-Type: application/json' -d '{
-            "text": "✅ *CI/CD Pipeline Completed Successfully*\n
-            • Branch: `${{ github.ref_name }}`\n
-            • Triggered by: ${{ github.actor }}\n
-            • Commit: ${{ github.event.head_commit.message }}\n
-            • Repository: ${{ github.repository }}\n
-            • Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          }' ${{ env.GOOGLE_CHAT_WEBHOOK }}
+          MESSAGE="✅ *CI/CD Pipeline Completed Successfully*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}\n• Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -X POST -H 'Content-Type: application/json' -d "{
+            \"text\": \"$MESSAGE\"
+          }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
 
       - name: Send Failure Notification
         if: steps.check.outputs.status == 'failure'
@@ -377,19 +370,11 @@ jobs:
           DEPLOY_LOGS="${{ needs.deploy.result != 'success' && needs.deploy.result != 'skipped' && 'Deploy job failed.' || '' }}"
           
           # Format error message
-          ERROR_MESSAGE="❌ *CI/CD Pipeline Failed*\n
-          • Branch: \`${{ github.ref_name }}\`\n
-          • Triggered by: ${{ github.actor }}\n
-          • Commit: ${{ github.event.head_commit.message }}\n
-          • Repository: ${{ github.repository }}\n
-          *Error Details:*\n
-          ${TEST_LOGS}\n
-          ${DEPLOY_LOGS}\n\n
-          🔍 View full logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
+          MESSAGE="❌ *CI/CD Pipeline Failed*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}\n\n*Error Details:*\n${TEST_LOGS}\n${DEPLOY_LOGS}\n\n🔍 View full logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
           # Send to Google Chat
           curl -X POST -H 'Content-Type: application/json' -d "{
-            \"text\": \"$ERROR_MESSAGE\"
+            \"text\": \"$MESSAGE\"
           }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
 
   # Cleanup job remains commented out as before
