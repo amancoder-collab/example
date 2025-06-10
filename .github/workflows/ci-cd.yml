@@ -23,7 +23,7 @@ jobs:
       TEST_DB_PASSWORD: postgres
       TEST_DB_PORT: 5432
       CLEAN_TEST_DB: test_db_clean
-      SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
+      SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/main' && 'staging' || 'dev' }}
 
     services:
       postgres:
@@ -57,7 +57,7 @@ jobs:
           if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "APP_PORT=5000" >> $GITHUB_ENV
-          elif [[ ${{ github.ref }} == 'refs/heads/staging' ]]; then
+          elif [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
             echo "APP_PORT=5001" >> $GITHUB_ENV
           else
@@ -157,7 +157,7 @@ jobs:
   # --- STAGE 2: DEPLOY with PM2 Zero Downtime ---
   deploy:
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main')
     runs-on: self-hosted
     concurrency:
       group: deploy-${{ github.ref }}
