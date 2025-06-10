@@ -11,8 +11,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
+env:
+  GOOGLE_CHAT_WEBHOOK: "https://chat.googleapis.com/v1/spaces/AAQAvVbDD44/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=X6V_BJ70wQtPL4gnyZ8I67Dvf2KQ--l-Rwbyss0nn30"
+
 jobs:
+  notify-start:
+    runs-on: self-hosted
+    steps:
+      - name: Send Start Notification
+        run: |
+          curl -X POST -H 'Content-Type: application/json' -d '{
+            "text": "🚀 *CI/CD Pipeline Started*\n
+            • Branch: `${{ github.ref_name }}`\n
+            • Triggered by: ${{ github.actor }}\n
+            • Commit: ${{ github.event.head_commit.message }}\n
+            • Repository: ${{ github.repository }}"
+          }' ${{ env.GOOGLE_CHAT_WEBHOOK }}
+
   test:
+    needs: notify-start
     runs-on: self-hosted
     concurrency:
       group: test-${{ github.ref }}
@@ -86,14 +103,22 @@ jobs:
           else
             echo "Creating new snapshot database..."
             
-            # Get environment-specific database URL from .env file
+            # Get environment-specific database URL from .env file and parse it
             ENV_DB_URL=$(grep DATABASE_URL .env | cut -d '=' -f2- | tr -d '"')
+            
+            # Parse the database URL to extract components
+            DB_HOST=$(echo $ENV_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
+            DB_PORT=$(echo $ENV_DB_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+            DB_NAME=$(echo $ENV_DB_URL | sed -n 's/.*\/\([^?]*\).*/\1/p')
+            DB_USER=$(echo $ENV_DB_URL | sed -n 's/.*:\/\/\([^:]*\).*/\1/p')
+            DB_PASS=$(echo $ENV_DB_URL | sed -n 's/.*:\/\/[^:]*:\([^@]*\).*/\1/p')
             
             # Create a new database for snapshot
             PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.SNAPSHOT_DB }};"
             
-            # Use pg_dump to copy schema and data
-            pg_dump "$ENV_DB_URL" | PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d ${{ env.SNAPSHOT_DB }}
+            # Use pg_dump with explicit connection parameters instead of URL
+            PGPASSWORD="$DB_PASS" pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$DB_NAME" | \
+            PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d ${{ env.SNAPSHOT_DB }}
             
             echo "Snapshot database created successfully!"
           fi
@@ -317,6 +342,56 @@ jobs:
               attempt=$((attempt + 1))
             fi
           done
+
+  notify-result:
+    needs: [test, deploy]
+    if: always()
+    runs-on: self-hosted
+    steps:
+      - name: Check workflow status
+        id: check
+        run: |
+          if [[ "${{ needs.test.result }}" == "success" && ("${{ needs.deploy.result }}" == "success" || "${{ needs.deploy.result }}" == "skipped") ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Success Notification
+        if: steps.check.outputs.status == 'success'
+        run: |
+          curl -X POST -H 'Content-Type: application/json' -d '{
+            "text": "✅ *CI/CD Pipeline Completed Successfully*\n
+            • Branch: `${{ github.ref_name }}`\n
+            • Triggered by: ${{ github.actor }}\n
+            • Commit: ${{ github.event.head_commit.message }}\n
+            • Repository: ${{ github.repository }}\n
+            • Duration: ${{ format(''%d minutes'', fromJSON((github.run_number - github.run_number + 1) * 0 + ((new Date()).getTime() - new Date(github.event.head_commit.timestamp).getTime()) / 60000)) }}"
+          }' ${{ env.GOOGLE_CHAT_WEBHOOK }}
+
+      - name: Send Failure Notification
+        if: steps.check.outputs.status == 'failure'
+        run: |
+          # Collect job logs
+          TEST_LOGS="${{ needs.test.result != 'success' && 'Test job failed.' || '' }}"
+          DEPLOY_LOGS="${{ needs.deploy.result != 'success' && needs.deploy.result != 'skipped' && 'Deploy job failed.' || '' }}"
+          
+          # Format error message
+          ERROR_MESSAGE="❌ *CI/CD Pipeline Failed*\n
+          • Branch: \`${{ github.ref_name }}\`\n
+          • Triggered by: ${{ github.actor }}\n
+          • Commit: ${{ github.event.head_commit.message }}\n
+          • Repository: ${{ github.repository }}\n
+          • Duration: ${{ format(''%d minutes'', fromJSON((github.run_number - github.run_number + 1) * 0 + ((new Date()).getTime() - new Date(github.event.head_commit.timestamp).getTime()) / 60000)) }}\n\n
+          *Error Details:*\n
+          ${TEST_LOGS}\n
+          ${DEPLOY_LOGS}\n\n
+          🔍 View full logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          # Send to Google Chat
+          curl -X POST -H 'Content-Type: application/json' -d "{
+            \"text\": \"$ERROR_MESSAGE\"
+          }" ${{ env.GOOGLE_CHAT_WEBHOOK }}
 
   # Cleanup job remains commented out as before
   # cleanup:
