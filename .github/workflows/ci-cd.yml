@@ -21,7 +21,7 @@ jobs:
     env:
       TEST_DB_USER: postgres
       TEST_DB_PASSWORD: postgres
-      TEST_DB_PORT: 5433
+      TEST_DB_PORT: 5432
       CLEAN_TEST_DB: test_db_clean
       SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/main' && 'staging' || 'dev' }}
 
@@ -33,7 +33,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
         ports:
-          - 5433:5432
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
