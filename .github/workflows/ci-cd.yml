@@ -12,7 +12,9 @@ concurrency:
 
 env:
   SERVICE_NAME: backend
-  ENV_PATH: /home/${{ env.CI_USER }}/environments
+  CI_USER: logicrays
+  DEPLOY_PATH: /home/logicrays/deployments
+  ENV_PATH: /home/logicrays/environments
 
 
 jobs:
@@ -275,10 +277,8 @@ jobs:
 
     env:
       CI_USER: logicrays
-      DEPLOY_PATH: /home/${{ env.CI_USER }}/deployments
       SERVICE_NAME: backend
-      ENV_PATH: /home/${{ env.CI_USER }}/environments
-      ROLLBACK_TIMEOUT: 100 # 30 seconds timeout for health check
+      ROLLBACK_TIMEOUT: 100 # 100 seconds timeout for health check
 
     steps:
       - name: Set deployment variables
