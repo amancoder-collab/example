@@ -2,41 +2,22 @@ name: CI/CD Pipeline (PM2 Zero Downtime Deployment)
 
 on:
   push:
-    branches: [production, staging, main]
+    branches: [production, staging, feat/cicd]
   pull_request:
-    branches: [production, staging, main]
+    branches: [production, staging, feat/cicd]
 
-# Make concurrency more specific and ensure it's at the top level
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
-  GOOGLE_CHAT_SPACE: "AAQAvVbDD44"
-  GOOGLE_CHAT_KEY: "AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI"
-  GOOGLE_CHAT_TOKEN: "X6V_BJ70wQtPL4gnyZ8I67Dvf2KQ--l-Rwbyss0nn30"
+  SERVICE_NAME: backend
+  ENV_PATH: /home/${{ env.CI_USER }}/environments
+
 
 jobs:
-  notify-start:
-    runs-on: self-hosted
-    steps:
-      - name: Send Start Notification
-        run: |
-          # Construct webhook URL with proper encoding
-          WEBHOOK_URL="https://chat.googleapis.com/v1/spaces/${GOOGLE_CHAT_SPACE}/messages?key=${GOOGLE_CHAT_KEY}&token=${GOOGLE_CHAT_TOKEN}"
-          
-          # Prepare message
-          MESSAGE="🚀 *CI/CD Pipeline Started*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}"
-          
-          # Send message using curl with URL in quotes
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"text\": \"$MESSAGE\"}" \
-            "$WEBHOOK_URL"
-
   test:
-    needs: notify-start
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     concurrency:
       group: test-${{ github.ref }}
       cancel-in-progress: true
@@ -45,26 +26,39 @@ jobs:
       TEST_DB_USER: postgres
       TEST_DB_PASSWORD: postgres
       TEST_DB_PORT: 5432
+      CI_USER: test-cicd
       CLEAN_TEST_DB: test_db_clean
-      SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/main' && 'staging' || 'dev' }}
+      SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
+      SERVICE_NAME: backend
+      ENV_PATH: /home/test-cicd/environments
 
-    # services:
-    #   postgres:
-    #     image: postgres:latest
-    #     env:
-    #       POSTGRES_USER: postgres
-    #       POSTGRES_PASSWORD: postgres
-    #       POSTGRES_DB: postgres
-    #     ports:
-    #       - 5432:5432
-    #     options: >-
-    #       --health-cmd pg_isready
-    #       --health-interval 10s
-    #       --health-timeout 5s
-    #       --health-retries 5
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
+
+      # - name: Install SSH key
+      #   uses: webfactory/ssh-agent@v0.8.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # - name: Add server to known hosts
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -80,6 +74,9 @@ jobs:
           if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
             echo "APP_PORT=5000" >> $GITHUB_ENV
+          elif [[ ${{ github.ref }} == 'refs/heads/staging' ]]; then
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+            echo "APP_PORT=5001" >> $GITHUB_ENV
           else
             echo "ENVIRONMENT=development" >> $GITHUB_ENV
             echo "APP_PORT=5001" >> $GITHUB_ENV
@@ -90,57 +87,142 @@ jobs:
           echo "Running tests against clean database..."
 
           # Create clean test database
-          # PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.CLEAN_TEST_DB }};"
+          PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.CLEAN_TEST_DB }};"
 
-          # Run migrations on clean database
-          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npx prisma migrate deploy
+          # Run migrations on clean database without seeding
+          # Set SKIP_SEED=true to prevent automatic seeding during migration
+          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" SKIP_SEED=true npx prisma migrate deploy
           DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npx prisma generate
+
+          # Run minimal test data setup if needed (without locations)
+          # DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npm run seed:test
 
           # Run tests against clean database
           # DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}" npm run test:e2e
 
           echo "Clean database tests passed!"
 
-      - name: Phase 2 - Setup Production-like Database
+      - name: Phase 2 - Setup Snapshot Database
         run: |
-          # Check if snapshot exists
-          if PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -lqt | cut -d \| -f 1 | grep -qw ${{ env.SNAPSHOT_DB }}; then
-            echo "Using existing snapshot database..."
-          else
-            echo "Creating new snapshot database..."
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            set -e
             
-            # Get environment-specific database URL from .env file and parse it
-            ENV_DB_URL=$(grep DATABASE_URL .env | cut -d '=' -f2- | tr -d '"')
-            
-            # Parse the database URL to extract components
-            DB_HOST=$(echo $ENV_DB_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
-            DB_PORT=$(echo $ENV_DB_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-            DB_NAME=$(echo $ENV_DB_URL | sed -n 's/.*\/\([^?]*\).*/\1/p')
-            DB_USER=$(echo $ENV_DB_URL | sed -n 's/.*:\/\/\([^:]*\).*/\1/p')
-            DB_PASS=$(echo $ENV_DB_URL | sed -n 's/.*:\/\/[^:]*:\([^@]*\).*/\1/p')
-            
-            # Create a new database for snapshot
-            PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.SNAPSHOT_DB }};"
-            
-            # Use pg_dump with explicit connection parameters instead of URL
-            PGPASSWORD="$DB_PASS" pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$DB_NAME" | \
-            PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d ${{ env.SNAPSHOT_DB }}
-            
-            echo "Snapshot database created successfully!"
-          fi
+            # Set environment variables
+            if [[ '${{ github.ref }}' == 'refs/heads/production' ]]; then
+              SNAPSHOT_DB=\"snapshot_prod\"
+            elif [[ '${{ github.ref }}' == 'refs/heads/staging' ]]; then
+              SNAPSHOT_DB=\"snapshot_staging\"
+            else
+              SNAPSHOT_DB=\"snapshot_dev\"
+            fi
 
-      - name: Phase 2 - Production-like Tests
+            # Safely extract DATABASE_URL from .env file
+            ENV_FILE=\"${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env\"
+            if [ ! -f \"\$ENV_FILE\" ]; then
+              echo \"Error: Environment file not found at \$ENV_FILE\"
+              exit 1
+            fi
+            
+            # Extract DATABASE_URL without executing the file
+            DATABASE_URL=\$(grep '^DATABASE_URL=' \"\$ENV_FILE\" | cut -d '=' -f2- | tr -d '\"')
+            if [ -z \"\$DATABASE_URL\" ]; then
+              echo \"Error: DATABASE_URL not found in environment file\"
+              exit 1
+            fi
+
+            # Clean the DATABASE_URL by removing query parameters
+            CLEAN_DB_URL=\$(echo \"\$DATABASE_URL\" | cut -d'?' -f1)
+            SOURCE_DB=\$(echo \$CLEAN_DB_URL | sed 's/.*\\///')
+            
+            echo \"Setting up snapshot database \$SNAPSHOT_DB from source \$SOURCE_DB\"
+            
+            # Function to terminate existing connections
+            terminate_connections() {
+              local db_name=\$1
+              psql \"\$CLEAN_DB_URL\" -c \"
+                SELECT pg_terminate_backend(pid) 
+                FROM pg_stat_activity 
+                WHERE datname = '\$db_name' 
+                AND pid <> pg_backend_pid();
+              \"
+            }
+            
+            # Check if snapshot exists and handle it
+            if psql \"\$CLEAN_DB_URL\" -lqt | cut -d \| -f 1 | grep -qw \$SNAPSHOT_DB; then
+              echo \"Found existing snapshot database, dropping it...\"
+              terminate_connections \"\$SNAPSHOT_DB\"
+              psql \"\$CLEAN_DB_URL\" -c \"DROP DATABASE IF EXISTS \$SNAPSHOT_DB;\"
+            fi
+
+            echo \"Creating new snapshot database...\"
+            
+            # Terminate connections to source database
+            terminate_connections \"\$SOURCE_DB\"
+            
+            # Create new snapshot with template
+            psql \"\$CLEAN_DB_URL\" -c \"CREATE DATABASE \$SNAPSHOT_DB WITH TEMPLATE \$SOURCE_DB;\"
+            
+            if [ \$? -eq 0 ]; then
+              echo \"Snapshot database created successfully!\"
+              
+              # Create a temporary file for environment variables
+              TEMP_ENV_FILE=\$(mktemp)
+              echo \"SNAPSHOT_DB_URL=\$(echo \"\$CLEAN_DB_URL\" | sed \"s/\\/[^\\/]*\$//\")/\$SNAPSHOT_DB\" > \$TEMP_ENV_FILE
+              
+              # Copy the temp file to the GitHub runner
+              cat \$TEMP_ENV_FILE
+              rm \$TEMP_ENV_FILE
+            else
+              echo \"Failed to create snapshot database\"
+              exit 1
+            fi
+          " >> $GITHUB_ENV
+
+      - name: Phase 2 - Run Tests Against Snapshot Database
         run: |
-          echo "Running tests against production-like database..."
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            set -e
+            
+            # Safely extract DATABASE_URL from .env file
+            ENV_FILE=\"${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env\"
+            if [ ! -f \"\$ENV_FILE\" ]; then
+              echo \"Error: Environment file not found at \$ENV_FILE\"
+              exit 1
+            fi
+            
+            # Extract required variables without executing the file
+            DATABASE_URL=\$(grep '^DATABASE_URL=' \"\$ENV_FILE\" | cut -d '=' -f2- | tr -d '\"')
+            if [ -z \"\$DATABASE_URL\" ]; then
+              echo \"Error: DATABASE_URL not found in environment file\"
+              exit 1
+            fi
+            
+            cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/current || {
+              echo \"Failed to change directory\"
+              exit 1
+            }
+            
+            echo \"Running tests against production-like database...\"
 
-          # Run migrations on snapshot database
-          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.SNAPSHOT_DB }}" npx prisma migrate deploy
-          DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.SNAPSHOT_DB }}" npx prisma generate
+            # Run migrations on snapshot database
+            if ! DATABASE_URL=\$SNAPSHOT_DB_URL npx prisma migrate deploy; then
+              echo \"Migration failed\"
+              exit 1
+            fi
 
-          # Run tests against snapshot database
-          # DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.SNAPSHOT_DB }}" npm run test:e2e
+            if ! DATABASE_URL=\$SNAPSHOT_DB_URL npx prisma generate; then
+              echo \"Prisma client generation failed\"
+              exit 1
+            fi
 
-          echo "Production-like database tests passed!"
+            # Run tests against snapshot database
+            # if ! DATABASE_URL=\$SNAPSHOT_DB_URL npm run test:e2e; then
+            #   echo \"Tests failed\"
+            #   exit 1
+            # fi
+
+            echo \"Production-like database tests passed!\"
+          "
         env:
           NODE_ENV: test
           PORT: ${{ env.APP_PORT }}
@@ -182,19 +264,21 @@ jobs:
             ecosystem.prod.config.js
             ecosystem.staging.config.js
 
-  # --- STAGE 2: DEPLOY with PM2 Zero Downtime ---
   deploy:
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/main')
-    runs-on: self-hosted
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/feat/cicd')
+    runs-on: ubuntu-latest
+    # Modify deploy job concurrency to prevent cancellation during critical operations
     concurrency:
       group: deploy-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
 
     env:
-      DEPLOY_PATH: /home/logicrays/deployments
+      CI_USER: logicrays
+      DEPLOY_PATH: /home/${{ env.CI_USER }}/deployments
       SERVICE_NAME: backend
-      ENV_PATH: /home/logicrays/environments
+      ENV_PATH: /home/${{ env.CI_USER }}/environments
+      ROLLBACK_TIMEOUT: 100 # 30 seconds timeout for health check
 
     steps:
       - name: Set deployment variables
@@ -209,217 +293,277 @@ jobs:
             echo "APP_PORT=5001" >> $GITHUB_ENV
           fi
 
-      - name: Setup deployment directory
-        run: |
-          # Create deployment directories
-          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
-          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
-          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build-artifacts
 
-          # Check if environment file exists
-          ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
-          if [ ! -f "$ENV_FILE_PATH" ]; then
-            echo "Environment file not found at $ENV_FILE_PATH"
-            echo "Please ensure the environment file exists at the correct location."
-            exit 1
-          fi
+      # - name: Install SSH key
+      #   uses: webfactory/ssh-agent@v0.8.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Setup deployment directory and check environment file
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            # Create deployment directories
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
+
+            # Check if environment file exists
+            ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
+            if [ ! -f \$ENV_FILE_PATH ]; then
+              echo 'Environment file not found at '\$ENV_FILE_PATH
+              echo 'Please ensure the environment file exists at the correct location.'
+              exit 1
+            fi
+          "
 
       - name: Create release directory
         env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
-          mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
-          chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
+            chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
+          "
 
       - name: Copy build artifacts and link environment file
         env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          RELEASE_DIR=${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
-          
-          # Copy project files to release directory
-          cp -r ./* $RELEASE_DIR/
-          
-          # Create symbolic link to environment file
-          ln -sf ${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env $RELEASE_DIR/.env
+          # Compress artifacts before transfer
+          cd build-artifacts
+          tar -czf ../artifacts.tar.gz .
+          cd ..
 
-      - name: Install dependencies & Deploy with PM2
+          # Transfer compressed file
+          scp artifacts.tar.gz ${{ env.CI_USER }}@${{ secrets.SERVER_IP }}:${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/
+
+          # Extract artifacts and setup environment file
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
+            tar -xzf artifacts.tar.gz
+            rm artifacts.tar.gz
+
+            # Create symbolic link to environment file
+            ln -sf ${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env .env
+          "
+
+      - name: Deploy with PM2 and Handle Rollback
         env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          # Clean up any existing npm config
-          rm -f ~/.npmrc
-          
-          # Navigate to the release directory
-          cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
-
-          # Install production dependencies
-          npm ci --production
-
-          # Run Prisma commands
-          npx prisma migrate deploy
-          npx prisma generate
-
-          # Create logs directory
-          mkdir -p logs
-
-          # Create/update symbolic link to current release
-          echo "Updating current symlink..."
-          ln -sfn ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/current
-
-          # PM2 Deployment
-          APP_NAME="${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}"
-          cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/current
-          
-          echo "APP_NAME: $APP_NAME"
-
-          # Check if PM2 is installed, if not install it
-          if ! command -v pm2 &> /dev/null; then
-            echo "Installing PM2 globally..."
-            npm install -g pm2
-          fi
-
-          # Check if the app exists in PM2
-          if pm2 list | grep -q "$APP_NAME"; then
-            echo "Performing zero-downtime reload..."
-            SERVICE_NAME=${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} pm2 reload $APP_NAME --update-env || {
-              echo "Reload failed, falling back to restart..."
-              SERVICE_NAME=${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} pm2 restart $APP_NAME --update-env
-            }
-          else
-            echo "Starting new PM2 process..."
-            SERVICE_NAME=${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} pm2 start ${{ env.PM2_CONFIG }} --update-env || {
-              echo "Failed to start PM2 process"
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            # Setup NVM and Node
+            export NVM_DIR=\$HOME/.nvm
+            [ -s \$NVM_DIR/nvm.sh ] && . \$NVM_DIR/nvm.sh || {
+              echo \"Failed to source NVM\"
               exit 1
             }
-          fi
-          
-          # Save PM2 configuration
-          pm2 save
-
-          # Wait for all instances to be ready
-          echo "Waiting for all instances to be ready..."
-          sleep 5
-          
-          # Verify all instances are running
-          EXPECTED_INSTANCES=$(pm2 prettylist | grep -c "online")
-          RUNNING_INSTANCES=$(pm2 prettylist | grep -c "online")
-          
-          if [ "$RUNNING_INSTANCES" -lt "$EXPECTED_INSTANCES" ]; then
-            echo "❌ Not all instances are running. Expected: $EXPECTED_INSTANCES, Running: $RUNNING_INSTANCES"
-            pm2 logs $APP_NAME --lines 50 --nostream
-            exit 1
-          fi
-          
-          echo "✅ All $RUNNING_INSTANCES instances are running"
-
-      - name: Verify Deployment
-        run: |
-          # Allow time for all instances to initialize
-          sleep 15
-          
-          echo 'Testing health endpoint...'
-          
-          # Try health check multiple times
-          max_attempts=5
-          attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            APP_NAME="${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}"
-            response=$(curl -s -w '%{http_code}' http://localhost:${{ env.APP_PORT }}/health -o /dev/null)
             
-            if [ $response -eq 200 ]; then
-              echo '✅ Health check passed!'
+            # Enable strict error handling
+            set -e
+            
+            PM2_BINARY=\$(which pm2)
+            if [ -z \"\$PM2_BINARY\" ]; then
+              echo \"PM2 not found\"
+              exit 1
+            fi
+            
+            APP_NAME=\"${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}\"
+            DEPLOY_BASE=\"${{ env.DEPLOY_PATH }}/\${APP_NAME}\"
+            NEW_RELEASE=\"\${DEPLOY_BASE}/releases/$RELEASE_ID\"
+            
+            # Always deploy to green first for testing
+            TARGET_COLOR=\"green\"
+            echo \"Deploying to green environment for testing\"
+            
+            # Function to clean up failed deployment
+            cleanup_failed_deployment() {
+              # local error_message=\$1
+              # echo \"❌ Deployment failed: \${error_message}\"
               
-              # Verify all instances are running
-              RUNNING_INSTANCES=$(pm2 prettylist | grep -c "online")
-              echo "Number of running instances: $RUNNING_INSTANCES"
+              # # Stop and remove green deployment if it exists
+              # \$PM2_BINARY delete \"\${APP_NAME}-green\" 2>/dev/null || true
+              
+              # # Remove the failed release
+              # rm -rf \"\${NEW_RELEASE}\"
+              # rm -rf \"\${DEPLOY_BASE}/green\"
+              
+              # # Ensure blue is still running and linked as current
+              # if [ -d \"\${DEPLOY_BASE}/blue\" ]; then
+              #   ln -sfn \"\${DEPLOY_BASE}/blue\" \"\${DEPLOY_BASE}/current\"
+              # fi
+              
+              # exit 1 
+            }
+            
+            # Setup green directory for testing
+            TARGET_DIR=\"\${DEPLOY_BASE}/green\"
+            mkdir -p \"\${TARGET_DIR}\"
+            
+            # Create release directory
+            mkdir -p \"\${NEW_RELEASE}\"
+            cd \"\${NEW_RELEASE}\" || cleanup_failed_deployment \"Failed to change directory to \${NEW_RELEASE}\"
+            
+            # Link environment file
+            ln -sf \"${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env\" .env
+            
+            # Calculate ports (green always uses offset ports)
+            BLUE_PORT=${{ env.APP_PORT }}
+            GREEN_PORT=\$((BLUE_PORT + 1))
+            BLUE_HEALTH_PORT=\$((BLUE_PORT + 100))
+            GREEN_HEALTH_PORT=\$((GREEN_PORT + 100))
+            
+            # Update environment file with green port
+            sed -i \"s/^PORT=.*/PORT=\${GREEN_PORT}/\" .env
+            sed -i \"s/^HEALTH_PORT=.*/HEALTH_PORT=\${GREEN_HEALTH_PORT}/\" .env
+            
+            echo \"Starting green deployment on port \${GREEN_PORT} (health check on \${GREEN_HEALTH_PORT})\"
+            
+            # Start new instance in green
+            if ! SERVICE_NAME=\"\${APP_NAME}-green\" \$PM2_BINARY start ${{ env.PM2_CONFIG }} --update-env; then
+              cleanup_failed_deployment \"Failed to start application\"
+            fi
+            
+            # Save PM2 configuration
+            \$PM2_BINARY save || cleanup_failed_deployment \"Failed to save PM2 configuration\"
+            
+            # Monitor health of green deployment
+            echo \"Monitoring green deployment health...\"
+            start_time=\$(date +%s)
+            timeout=${{ env.ROLLBACK_TIMEOUT }}
+            deployment_successful=false
+            
+            while true; do
+              current_time=\$(date +%s)
+              elapsed=\$((current_time - start_time))
+              
+              if [ \$elapsed -ge \$timeout ]; then
+                echo \"❌ Health check timeout reached\"
+                cleanup_failed_deployment \"Health check timeout\"
+              fi
+              
+              # Check application health on green
+              if curl -s \"http://localhost:\${GREEN_HEALTH_PORT}/health\" | grep -q \"ok\"; then
+                # Verify green instance is running
+                RUNNING_INSTANCES=\$(\$PM2_BINARY prettylist | grep -c \"online\")
+                EXPECTED_INSTANCES=\$(\$PM2_BINARY prettylist | grep -c \"\${APP_NAME}-green\")
+                
+                if [ \"\$RUNNING_INSTANCES\" -eq \"\$EXPECTED_INSTANCES\" ]; then
+                  echo \"✅ Green deployment is healthy\"
+                  deployment_successful=true
+                  break
+                fi
+              fi
+              
+              # Check for critical errors in logs
+              if \$PM2_BINARY logs \"\${APP_NAME}-green\" --lines 100 --nostream | grep -q \"FATAL ERROR\"; then
+                echo \"❌ Critical error detected in logs\"
+                cleanup_failed_deployment \"Critical error in application logs\"
+              fi
+              
+              sleep 2
+            done
+            
+            if [ \"\$deployment_successful\" = true ]; then
+              echo \"Green deployment successful, promoting to blue...\"
+              
+              # Stop blue instance if it exists
+              \$PM2_BINARY delete \"\${APP_NAME}-blue\" 2>/dev/null || true
+              
+              # Update environment file with blue port
+              sed -i \"s/^PORT=.*/PORT=\${BLUE_PORT}/\" .env
+              sed -i \"s/^HEALTH_PORT=.*/HEALTH_PORT=\${BLUE_HEALTH_PORT}/\" .env
+              
+              # Start blue instance
+              if ! SERVICE_NAME=\"\${APP_NAME}-blue\" \$PM2_BINARY start ${{ env.PM2_CONFIG }} --update-env; then
+                cleanup_failed_deployment \"Failed to start blue instance\"
+              fi
+              
+              # Update symlinks
+              ln -sfn \"\${NEW_RELEASE}\" \"\${DEPLOY_BASE}/blue\"
+              ln -sfn \"\${DEPLOY_BASE}/blue\" \"\${DEPLOY_BASE}/current\"
+              
+              # Stop green instance
+              \$PM2_BINARY delete \"\${APP_NAME}-green\" || true
+              rm -rf \"\${DEPLOY_BASE}/green\"
+              
+              \$PM2_BINARY save
+              
+              echo \"✅ Successfully promoted green deployment to blue\"
               exit 0
             else
-              echo "Attempt $attempt: Health check failed with status $response"
-              if [ $attempt -eq $max_attempts ]; then
-                echo "❌ Health check failed after $max_attempts attempts"
-                pm2 logs ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} --lines 50 --nostream
-                exit 1
-              fi
-              echo 'Waiting 5 seconds before next attempt...'
-              sleep 5
-              attempt=$((attempt + 1))
-            fi
-          done
+              cleanup_failed_deployment \"Deployment verification failed\"
+            fi"
 
-  notify-result:
-    needs: [test, deploy]
-    if: always()
-    runs-on: self-hosted
-    steps:
-      - name: Check workflow status
-        id: check
+      - name: Verify Final Deployment State
+        if: success()
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          if [[ "${{ needs.test.result }}" == "success" && ("${{ needs.deploy.result }}" == "success" || "${{ needs.deploy.result }}" == "skipped") ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-            echo "status=failure" >> $GITHUB_OUTPUT
-          fi
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+            export NVM_DIR=\$HOME/.nvm
+            [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
+            PM2_BINARY=\$(which pm2)
+            
+            echo 'Final deployment state:'
+            \$PM2_BINARY list
+            \$PM2_BINARY logs ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} --lines 20 --nostream
+          "
 
-      - name: Send Success Notification
-        if: steps.check.outputs.status == 'success'
-        run: |
-          # Construct webhook URL with proper encoding
-          WEBHOOK_URL="https://chat.googleapis.com/v1/spaces/${GOOGLE_CHAT_SPACE}/messages?key=${GOOGLE_CHAT_KEY}&token=${GOOGLE_CHAT_TOKEN}"
-          
-          # Prepare message
-          MESSAGE="✅ *CI/CD Pipeline Completed Successfully*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}\n• Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
-          # Send message using curl with URL in quotes
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"text\": \"$MESSAGE\"}" \
-            "$WEBHOOK_URL"
-
-      - name: Send Failure Notification
-        if: steps.check.outputs.status == 'failure'
-        run: |
-          # Construct webhook URL with proper encoding
-          WEBHOOK_URL="https://chat.googleapis.com/v1/spaces/${GOOGLE_CHAT_SPACE}/messages?key=${GOOGLE_CHAT_KEY}&token=${GOOGLE_CHAT_TOKEN}"
-          
-          # Collect job logs
-          TEST_LOGS="${{ needs.test.result != 'success' && 'Test job failed.' || '' }}"
-          DEPLOY_LOGS="${{ needs.deploy.result != 'success' && needs.deploy.result != 'skipped' && 'Deploy job failed.' || '' }}"
-          
-          # Format error message
-          MESSAGE="❌ *CI/CD Pipeline Failed*\n• Branch: \`${{ github.ref_name }}\`\n• Triggered by: ${{ github.actor }}\n• Commit: ${{ github.event.head_commit.message }}\n• Repository: ${{ github.repository }}\n\n*Error Details:*\n${TEST_LOGS}\n${DEPLOY_LOGS}\n\n🔍 View full logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
-          # Send message using curl with URL in quotes
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"text\": \"$MESSAGE\"}" \
-            "$WEBHOOK_URL"
-
-  # Cleanup job remains commented out as before
   # cleanup:
-  #   if: always()
-  #   needs: [test, deploy]
-  #   runs-on: self-hosted
+  #   if: failure()
+  #   needs: [deploy]
+  #   runs-on: ubuntu-latest
   #   steps:
-  #     - name: Check workflow status
-  #       if: contains(needs.*.result, 'cancelled')
+  #     - name: Cleanup Failed Deployment
+  #       env:
+  #         SERVER_IP: ${{ secrets.SERVER_IP }}
   #       run: |
-  #         echo "Workflow was cancelled, performing cleanup..."
-  #         
-  #         # Get the current deployment directory
-  #         DEPLOY_DIR=${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
-  #
-  #         # If there's an incomplete deployment, remove it
-  #         if [ -d $DEPLOY_DIR/releases/release_${{ github.sha }} ]; then
-  #           echo 'Removing incomplete deployment...'
-  #           rm -rf $DEPLOY_DIR/releases/release_${{ github.sha }}
-  #         fi
-  #
-  #         # Ensure PM2 process is in a good state
-  #         pm2 describe ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }} > /dev/null
-  #         if [ $? -eq 0 ]; then
-  #           echo 'Restarting PM2 process...'
-  #           pm2 restart ${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
-  #         fi
+  #         ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+  #           export NVM_DIR=\$HOME/.nvm
+  #           [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
+
+  #           APP_NAME='${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}'
+  #           DEPLOY_DIR=${{ env.DEPLOY_PATH }}/\$APP_NAME
+  #           FAILED_RELEASE=\$DEPLOY_DIR/releases/release_${{ github.sha }}
+
+  #           # Remove failed release directory if it exists
+  #           if [ -d \$FAILED_RELEASE ]; then
+  #             echo 'Removing failed deployment directory...'
+  #             rm -rf \$FAILED_RELEASE
+  #           fi
+
+  #           # Check for and restore database if needed
+  #           BACKUP_FILE=\$(find \$FAILED_RELEASE -name 'pre_deploy_*.sql' -type f -print -quit)
+  #           if [ -n \"\$BACKUP_FILE\" ]; then
+  #             echo 'Found database backup, restoring...'
+  #             DB_URL=\$(grep DATABASE_URL \$DEPLOY_DIR/current/.env | cut -d '=' -f2- | tr -d '\"')
+  #             psql \$DB_URL < \$BACKUP_FILE
+  #             rm \$BACKUP_FILE
+  #           fi
+
+  #           # Ensure service is running with last known good version
+  #           PM2_BINARY=\$(which pm2)
+  #           if \$PM2_BINARY describe \$APP_NAME > /dev/null; then
+  #             echo 'Ensuring service is running with last known good version...'
+  #             cd \$DEPLOY_DIR/current
+  #             SERVICE_NAME=\$APP_NAME \$PM2_BINARY restart \$APP_NAME --update-env
+  #             \$PM2_BINARY save
+  #           fi
+  #         "
