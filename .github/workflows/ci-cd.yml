@@ -28,11 +28,8 @@ jobs:
       TEST_DB_USER: postgres
       TEST_DB_PASSWORD: postgres
       TEST_DB_PORT: 5432
-      CI_USER: test-cicd
       CLEAN_TEST_DB: test_db_clean
       SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
-      SERVICE_NAME: backend
-      ENV_PATH: /home/test-cicd/environments
 
     services:
       postgres:
@@ -276,8 +273,6 @@ jobs:
       cancel-in-progress: false
 
     env:
-      CI_USER: logicrays
-      SERVICE_NAME: backend
       ROLLBACK_TIMEOUT: 100 # 100 seconds timeout for health check
 
     steps:
