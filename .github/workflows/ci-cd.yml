@@ -17,185 +17,185 @@ env:
   ENV_PATH: /home/logicrays/environments
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    concurrency:
-      group: test-${{ github.ref }}
-      cancel-in-progress: true
+  # test:
+  #   runs-on: ubuntu-latest
+  #   concurrency:
+  #     group: test-${{ github.ref }}
+  #     cancel-in-progress: true
 
-    env:
-      TEST_DB_USER: postgres
-      TEST_DB_PASSWORD: postgres
-      TEST_DB_PORT: 5432
-      CLEAN_TEST_DB: test_db_clean
-      SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
+  #   env:
+  #     TEST_DB_USER: postgres
+  #     TEST_DB_PASSWORD: postgres
+  #     TEST_DB_PORT: 5432
+  #     CLEAN_TEST_DB: test_db_clean
+  #     SNAPSHOT_DB: snapshot_${{ github.ref == 'refs/heads/production' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
 
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+  #   services:
+  #     postgres:
+  #       image: postgres:latest
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: postgres
+  #       ports:
+  #         - 5432:5432
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Install SSH key
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #     - name: Install SSH key
+  #       uses: webfactory/ssh-agent@v0.8.0
+  #       with:
+  #         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add server to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+  #     - name: Add server to known hosts
+  #       run: |
+  #         mkdir -p ~/.ssh
+  #         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "20"
+  #         cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Set environment variables
-        run: |
-          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
-            echo "ENVIRONMENT=production" >> $GITHUB_ENV
-            echo "APP_PORT=5000" >> $GITHUB_ENV
-          elif [[ ${{ github.ref }} == 'refs/heads/staging' ]]; then
-            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
-            echo "APP_PORT=5001" >> $GITHUB_ENV
-          else
-            echo "ENVIRONMENT=development" >> $GITHUB_ENV
-            echo "APP_PORT=5001" >> $GITHUB_ENV
-          fi
+  #     - name: Set environment variables
+  #       run: |
+  #         if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
+  #           echo "ENVIRONMENT=production" >> $GITHUB_ENV
+  #           echo "APP_PORT=5000" >> $GITHUB_ENV
+  #         elif [[ ${{ github.ref }} == 'refs/heads/staging' ]]; then
+  #           echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+  #           echo "APP_PORT=5001" >> $GITHUB_ENV
+  #         else
+  #           echo "ENVIRONMENT=development" >> $GITHUB_ENV
+  #           echo "APP_PORT=5001" >> $GITHUB_ENV
+  #         fi
 
-      # - name: Phase 1 - Clean Database Tests
-      #   run: |
-      #     echo "Running tests against clean database..."
+  #     # - name: Phase 1 - Clean Database Tests
+  #     #   run: |
+  #     #     echo "Running tests against clean database..."
 
-      #     # Create clean test database
-      #     # PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.CLEAN_TEST_DB }};"
+  #     #     # Create clean test database
+  #     #     # PGPASSWORD=${{ env.TEST_DB_PASSWORD }} psql -h localhost -U ${{ env.TEST_DB_USER }} -d postgres -c "CREATE DATABASE ${{ env.CLEAN_TEST_DB }};"
 
-      #     DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}"
+  #     #     DATABASE_URL="postgresql://${{ env.TEST_DB_USER }}:${{ env.TEST_DB_PASSWORD }}@localhost:${{ env.TEST_DB_PORT }}/${{ env.CLEAN_TEST_DB }}"
 
-      #     # Run migrations on clean database without seeding
-      #     # Set SKIP_SEED=true to prevent automatic seeding during migration
-      #     DATABASE_URL=$DATABASE_URL SKIP_SEED=true npx prisma migrate deploy
-      #     DATABASE_URL=$DATABASE_URL npx prisma generate
+  #     #     # Run migrations on clean database without seeding
+  #     #     # Set SKIP_SEED=true to prevent automatic seeding during migration
+  #     #     DATABASE_URL=$DATABASE_URL SKIP_SEED=true npx prisma migrate deploy
+  #     #     DATABASE_URL=$DATABASE_URL npx prisma generate
 
-      #     # Run tests against clean database
-      #     DATABASE_URL=$DATABASE_URL npm run test:e2e
+  #     #     # Run tests against clean database
+  #     #     DATABASE_URL=$DATABASE_URL npm run test:e2e
 
-      #     echo "Clean database tests passed!"
+  #     #     echo "Clean database tests passed!"
 
-      # - name: Phase 2 - Setup Snapshot Database
-      #   id: snapshot
-      #   run: |
-      #     # Set the source and snapshot database URLs based on the branch
-      #     if [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-      #       SOURCE_DB_URL="${{ secrets.PROD_DATABASE_URL }}"
-      #       SNAPSHOT_DB="snapshot_prod"
-      #     else
-      #       SOURCE_DB_URL="${{ secrets.STAGING_DATABASE_URL }}"
-      #       SNAPSHOT_DB="snapshot_staging"
-      #     fi
+  #     # - name: Phase 2 - Setup Snapshot Database
+  #     #   id: snapshot
+  #     #   run: |
+  #     #     # Set the source and snapshot database URLs based on the branch
+  #     #     if [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
+  #     #       SOURCE_DB_URL="${{ secrets.PROD_DATABASE_URL }}"
+  #     #       SNAPSHOT_DB="snapshot_prod"
+  #     #     else
+  #     #       SOURCE_DB_URL="${{ secrets.STAGING_DATABASE_URL }}"
+  #     #       SNAPSHOT_DB="snapshot_staging"
+  #     #     fi
 
-      #     # Extract base URL without query parameters and database name
-      #     CLEAN_DB_URL=$(echo "$SOURCE_DB_URL" | cut -d "?" -f1)
-      #     BASE_URL=$(dirname "$CLEAN_DB_URL")
-      #     SOURCE_DB=$(basename "$CLEAN_DB_URL")
+  #     #     # Extract base URL without query parameters and database name
+  #     #     CLEAN_DB_URL=$(echo "$SOURCE_DB_URL" | cut -d "?" -f1)
+  #     #     BASE_URL=$(dirname "$CLEAN_DB_URL")
+  #     #     SOURCE_DB=$(basename "$CLEAN_DB_URL")
 
-      #     echo "Creating snapshot database: $SNAPSHOT_DB"
+  #     #     echo "Creating snapshot database: $SNAPSHOT_DB"
 
-      #     echo "SOURCE_DB_URL=$SOURCE_DB_URL"
+  #     #     echo "SOURCE_DB_URL=$SOURCE_DB_URL"
 
-      #     # Create the snapshot database
-      #     psql "$SOURCE_DB_URL" -c "
-      #       SELECT pg_terminate_backend(pid)
-      #       FROM pg_stat_activity
-      #       WHERE datname = '$SNAPSHOT_DB' AND pid <> pg_backend_pid();
-      #     "
+  #     #     # Create the snapshot database
+  #     #     psql "$SOURCE_DB_URL" -c "
+  #     #       SELECT pg_terminate_backend(pid)
+  #     #       FROM pg_stat_activity
+  #     #       WHERE datname = '$SNAPSHOT_DB' AND pid <> pg_backend_pid();
+  #     #     "
 
-      #     echo "Dropping existing snapshot if it exists..."
-      #     psql "$SOURCE_DB_URL" -c "DROP DATABASE IF EXISTS $SNAPSHOT_DB;"
+  #     #     echo "Dropping existing snapshot if it exists..."
+  #     #     psql "$SOURCE_DB_URL" -c "DROP DATABASE IF EXISTS $SNAPSHOT_DB;"
 
-      #     echo "Creating new snapshot from $SOURCE_DB..."
-      #     psql "$SOURCE_DB_URL" -c "CREATE DATABASE $SNAPSHOT_DB WITH TEMPLATE $SOURCE_DB;"
+  #     #     echo "Creating new snapshot from $SOURCE_DB..."
+  #     #     psql "$SOURCE_DB_URL" -c "CREATE DATABASE $SNAPSHOT_DB WITH TEMPLATE $SOURCE_DB;"
 
-      #     # Construct the snapshot database URL
-      #     SNAPSHOT_DB_URL="${BASE_URL}/${SNAPSHOT_DB}"
+  #     #     # Construct the snapshot database URL
+  #     #     SNAPSHOT_DB_URL="${BASE_URL}/${SNAPSHOT_DB}"
 
-      #     echo "SNAPSHOT_DB_URL=$SNAPSHOT_DB_URL" >> "$GITHUB_ENV"
-      #     echo "Snapshot database created successfully at: $SNAPSHOT_DB_URL"
+  #     #     echo "SNAPSHOT_DB_URL=$SNAPSHOT_DB_URL" >> "$GITHUB_ENV"
+  #     #     echo "Snapshot database created successfully at: $SNAPSHOT_DB_URL"
 
-      # - name: Phase 2 - Run Tests Against Snapshot Database
-      #   run: |
-      #     echo "Running tests against production-like database..."
+  #     # - name: Phase 2 - Run Tests Against Snapshot Database
+  #     #   run: |
+  #     #     echo "Running tests against production-like database..."
 
-      #     # Run migrations on snapshot database
-      #     DATABASE_URL="${{ env.SNAPSHOT_DB_URL }}" npx prisma migrate deploy
+  #     #     # Run migrations on snapshot database
+  #     #     DATABASE_URL="${{ env.SNAPSHOT_DB_URL }}" npx prisma migrate deploy
 
-      #     # Generate Prisma client
-      #     DATABASE_URL="${{ env.SNAPSHOT_DB_URL }}" npx prisma generate
+  #     #     # Generate Prisma client
+  #     #     DATABASE_URL="${{ env.SNAPSHOT_DB_URL }}" npx prisma generate
 
-      #     # Run tests against snapshot database
-      #     # DATABASE_URL="${{ env.SNAPSHOT_DB_URL }}" npm run test:e2e
+  #     #     # Run tests against snapshot database
+  #     #     # DATABASE_URL="${{ env.SNAPSHOT_DB_URL }}" npm run test:e2e
 
-      #     echo "Production-like database tests passed!"
-      #   env:
-      #     NODE_ENV: test
-      #     PORT: ${{ env.APP_PORT }}
-      #     HOST: localhost
-      #     JWT_ACCESS_TOKEN_SECRET: test_jwt_secret
-      #     JWT_REFRESH_TOKEN_SECRET: test_refresh_secret
-      #     JWT_RESET_TOKEN_SECRET: test_reset_secret
-      #     JWT_ACCESS_TOKEN_EXPIRES_IN: 1h
-      #     JWT_REFRESH_TOKEN_EXPIRES_IN: 1d
-      #     JWT_RESET_TOKEN_EXPIRES_IN: 1h
-      #     RATE_LIMIT_WINDOW_MS: 900000
-      #     RATE_LIMIT_MAX: 100
-      #     EMAIL_HOST: smtp.gmail.com
-      #     EMAIL_PORT: 587
-      #     EMAIL_USER: test@example.com
-      #     EMAIL_PASS: test_password
-      #     LOG_LEVEL: info
+  #     #     echo "Production-like database tests passed!"
+  #     #   env:
+  #     #     NODE_ENV: test
+  #     #     PORT: ${{ env.APP_PORT }}
+  #     #     HOST: localhost
+  #     #     JWT_ACCESS_TOKEN_SECRET: test_jwt_secret
+  #     #     JWT_REFRESH_TOKEN_SECRET: test_refresh_secret
+  #     #     JWT_RESET_TOKEN_SECRET: test_reset_secret
+  #     #     JWT_ACCESS_TOKEN_EXPIRES_IN: 1h
+  #     #     JWT_REFRESH_TOKEN_EXPIRES_IN: 1d
+  #     #     JWT_RESET_TOKEN_EXPIRES_IN: 1h
+  #     #     RATE_LIMIT_WINDOW_MS: 900000
+  #     #     RATE_LIMIT_MAX: 100
+  #     #     EMAIL_HOST: smtp.gmail.com
+  #     #     EMAIL_PORT: 587
+  #     #     EMAIL_USER: test@example.com
+  #     #     EMAIL_PASS: test_password
+  #     #     LOG_LEVEL: info
 
-      - name: Build project
-        if: github.event_name == 'push'
-        run: |
-          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
-            npm run build:prod
-          else
-            npm run build
-          fi
+  #     - name: Build project
+  #       if: github.event_name == 'push'
+  #       run: |
+  #         if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
+  #           npm run build:prod
+  #         else
+  #           npm run build
+  #         fi
 
-      - name: Upload build artifacts
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            dist/
-            package.json
-            package-lock.json
-            prisma/
-            swagger-spec.json
-            ecosystem.prod.config.js
-            ecosystem.staging.config.js
+  #     - name: Upload build artifacts
+  #       if: github.event_name == 'push'
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: build-artifacts
+  #         path: |
+  #           dist/
+  #           package.json
+  #           package-lock.json
+  #           prisma/
+  #           swagger-spec.json
+  #           ecosystem.prod.config.js
+  #           ecosystem.staging.config.js
 
   deploy:
-    needs: test
+    # needs: test
     if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/feat/cicd')
     runs-on: ubuntu-latest
     concurrency:
@@ -206,23 +206,23 @@ jobs:
       ROLLBACK_TIMEOUT: 100 # 100 seconds timeout for health check
 
     steps:
-      - name: Set deployment variables
-        run: |
-          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
-            echo "ENVIRONMENT=production" >> $GITHUB_ENV
-            echo "PM2_CONFIG=ecosystem.prod.config.js" >> $GITHUB_ENV
-            echo "APP_PORT=5000" >> $GITHUB_ENV
-          else
-            echo "ENVIRONMENT=development" >> $GITHUB_ENV
-            echo "PM2_CONFIG=ecosystem.staging.config.js" >> $GITHUB_ENV
-            echo "APP_PORT=5001" >> $GITHUB_ENV
-          fi
+      # - name: Set deployment variables
+      #   run: |
+      #     if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
+      #       echo "ENVIRONMENT=production" >> $GITHUB_ENV
+      #       echo "PM2_CONFIG=ecosystem.prod.config.js" >> $GITHUB_ENV
+      #       echo "APP_PORT=5000" >> $GITHUB_ENV
+      #     else
+      #       echo "ENVIRONMENT=development" >> $GITHUB_ENV
+      #       echo "PM2_CONFIG=ecosystem.staging.config.js" >> $GITHUB_ENV
+      #       echo "APP_PORT=5001" >> $GITHUB_ENV
+      #     fi
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: build-artifacts
+      # - name: Download build artifacts
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: build-artifacts
+      #     path: build-artifacts
 
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.8.0
@@ -240,17 +240,17 @@ jobs:
         run: |
           ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
             # Create deployment directories
-            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
-            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
-            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
+            # mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
+            # mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
+            # mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
 
-            # Check if environment file exists
-            ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
-            if [ ! -f \$ENV_FILE_PATH ]; then
-              echo 'Environment file not found at '\$ENV_FILE_PATH
-              echo 'Please ensure the environment file exists at the correct location.'
-              exit 1
-            fi
+            # # Check if environment file exists
+            # ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
+            # if [ ! -f \$ENV_FILE_PATH ]; then
+            #   echo 'Environment file not found at '\$ENV_FILE_PATH
+            #   echo 'Please ensure the environment file exists at the correct location.'
+            #   exit 1
+            # fi
           "
 
       - name: Create release directory
