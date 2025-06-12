@@ -12,9 +12,9 @@ concurrency:
 
 env:
   SERVICE_NAME: backend
-  CI_USER: logicrays
-  DEPLOY_PATH: /home/logicrays/deployments
-  ENV_PATH: /home/logicrays/environments
+  CI_USER: test-cicd
+  DEPLOY_PATH: /home/test-cicd/deployments
+  ENV_PATH: /home/test-cicd/environments
 
 jobs:
   # test:
@@ -236,7 +236,7 @@ jobs:
 
       - name: Setup deployment directory and check environment file
         run: |
-          ssh logicrays@127.0.0.1 "
+          ssh test-cicd@127.0.0.1 "
             # Create deployment directories
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
@@ -255,7 +255,7 @@ jobs:
         env:
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          ssh logicrays@127.0.0.1 "
+          ssh test-cicd@127.0.0.1 "
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
             chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
@@ -271,10 +271,10 @@ jobs:
           cd ..
 
           # Transfer compressed file
-          scp artifacts.tar.gz logicrays@127.0.0.1:${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/
+          scp artifacts.tar.gz test-cicd@127.0.0.1:${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/
 
           # Extract artifacts and setup environment file
-          ssh logicrays@127.0.0.1 "
+          ssh test-cicd@127.0.0.1 "
             cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
             tar -xzf artifacts.tar.gz
             rm artifacts.tar.gz
@@ -287,7 +287,7 @@ jobs:
         env:
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          ssh logicrays@127.0.0.1 "
+          ssh test-cicd@127.0.0.1 "
             # Setup NVM and Node
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && . \$NVM_DIR/nvm.sh || {
@@ -434,7 +434,7 @@ jobs:
       - name: Verify Final Deployment State
         if: success()
         run: |
-          ssh logicrays@127.0.0.1 "
+          ssh test-cicd@127.0.0.1 "
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
             PM2_BINARY=\$(which pm2)
