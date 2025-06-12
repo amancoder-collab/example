@@ -56,8 +56,6 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/test-cicd
-          chmod 600 ~/.ssh/test-cicd
           ssh-keyscan -H 127.0.0.1 >> ~/.ssh/known_hosts
 
 
