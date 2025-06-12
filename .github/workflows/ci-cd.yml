@@ -238,7 +238,7 @@ jobs:
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          # ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
             # Create deployment directories
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
@@ -251,7 +251,7 @@ jobs:
               echo 'Please ensure the environment file exists at the correct location.'
               exit 1
             fi
-          # "
+          "
 
       - name: Create release directory
         env:
