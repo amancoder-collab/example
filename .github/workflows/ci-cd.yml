@@ -60,7 +60,7 @@ jobs:
 
       - name: Connect to server
         run: |
-          ssh test-cicd@127.0.0.1 "
+          ssh -v test-cicd@127.0.0.1 "
             echo 'Connected to server'
           "
 
