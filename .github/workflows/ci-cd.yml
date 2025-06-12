@@ -232,7 +232,7 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ localhost }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H localhost >> ~/.ssh/known_hosts
 
       - name: Setup deployment directory and check environment file
         run: |
