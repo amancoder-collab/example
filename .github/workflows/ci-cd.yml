@@ -201,7 +201,7 @@ jobs:
             ecosystem.staging.config.js
 
   deploy:
-    # needs: test
+    needs: test
     if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/feat/cicd')
     runs-on: ubuntu-latest
     concurrency:
