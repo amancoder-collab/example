@@ -118,6 +118,8 @@ jobs:
 
           echo "Creating snapshot database: $SNAPSHOT_DB"
 
+          echo "SOURCE_DB_URL=$SOURCE_DB_URL"
+
           # Create the snapshot database
           psql "$SOURCE_DB_URL" -c "
             SELECT pg_terminate_backend(pid)
