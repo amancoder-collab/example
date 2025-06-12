@@ -238,20 +238,20 @@ jobs:
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          # ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
             # Create deployment directories
-            # mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
-            # mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
-            # mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
+            mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/shared
 
-            # # Check if environment file exists
-            # ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
-            # if [ ! -f \$ENV_FILE_PATH ]; then
-            #   echo 'Environment file not found at '\$ENV_FILE_PATH
-            #   echo 'Please ensure the environment file exists at the correct location.'
-            #   exit 1
-            # fi
-          "
+            # Check if environment file exists
+            ENV_FILE_PATH=${{ env.ENV_PATH }}/${{ env.ENVIRONMENT }}/${{ env.SERVICE_NAME }}/.env
+            if [ ! -f \$ENV_FILE_PATH ]; then
+              echo 'Environment file not found at '\$ENV_FILE_PATH
+              echo 'Please ensure the environment file exists at the correct location.'
+              exit 1
+            fi
+          # "
 
       - name: Create release directory
         env:
