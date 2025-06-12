@@ -56,7 +56,7 @@ jobs:
   #     - name: Add server to known hosts
   #       run: |
   #         mkdir -p ~/.ssh
-  #         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+  #         ssh-keyscan -H ${{ localhost }} >> ~/.ssh/known_hosts
 
   #     - name: Setup Node.js
   #       uses: actions/setup-node@v4
@@ -232,13 +232,11 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ localhost }} >> ~/.ssh/known_hosts
 
       - name: Setup deployment directory and check environment file
-        env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          ssh logicrays@localhost "
             # Create deployment directories
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases
@@ -255,10 +253,9 @@ jobs:
 
       - name: Create release directory
         env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          ssh logicrays@localhost "
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
             mkdir -p ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
             chmod 755 ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/logs
@@ -266,7 +263,6 @@ jobs:
 
       - name: Copy build artifacts and link environment file
         env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
           RELEASE_ID: release_${{ github.sha }}
         run: |
           # Compress artifacts before transfer
@@ -275,10 +271,10 @@ jobs:
           cd ..
 
           # Transfer compressed file
-          scp artifacts.tar.gz ${{ env.CI_USER }}@${{ secrets.SERVER_IP }}:${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/
+          scp artifacts.tar.gz logicrays@localhost:${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID/
 
           # Extract artifacts and setup environment file
-          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          ssh logicrays@localhost "
             cd ${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}-${{ env.ENVIRONMENT }}/releases/$RELEASE_ID
             tar -xzf artifacts.tar.gz
             rm artifacts.tar.gz
@@ -289,10 +285,9 @@ jobs:
 
       - name: Deploy with PM2 and Handle Rollback
         env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
           RELEASE_ID: release_${{ github.sha }}
         run: |
-          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          ssh logicrays@localhost "
             # Setup NVM and Node
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && . \$NVM_DIR/nvm.sh || {
@@ -438,10 +433,8 @@ jobs:
 
       - name: Verify Final Deployment State
         if: success()
-        env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          ssh ${{ env.CI_USER }}@${{ secrets.SERVER_IP }} "
+          ssh logicrays@localhost "
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
             PM2_BINARY=\$(which pm2)
